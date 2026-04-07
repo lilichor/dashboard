@@ -32,12 +32,30 @@ exports.handler = async (event) => {
       maxResults: 20,
     });
 
-    const events = (result.data.items || []).map((e) => ({
-      title: e.summary,
-      start: e.start.dateTime || e.start.date,
-      end: e.end.dateTime || e.end.date,
-      location: e.location || null,
-    }));
+    const events = (result.data.items || []).map((e) => {
+      const meetLink =
+        e.hangoutLink ||
+        e.conferenceData?.entryPoints?.find((ep) => ep.entryPointType === "video")?.uri ||
+        null;
+
+      const attendees = (e.attendees || []).map((a) => ({
+        name: a.displayName || a.email,
+        email: a.email,
+        status: a.responseStatus,
+      }));
+
+      return {
+        id: e.id,
+        title: e.summary || "(Sans titre)",
+        start: e.start.dateTime || e.start.date,
+        end: e.end.dateTime || e.end.date,
+        location: e.location || null,
+        description: e.description || null,
+        meetLink,
+        attendees,
+        calendarUrl: e.htmlLink || null,
+      };
+    });
 
     return { statusCode: 200, body: JSON.stringify(events) };
   } catch (e) {

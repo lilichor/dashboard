@@ -7,6 +7,30 @@ function getTokenFromCookie(cookieHeader) {
   return JSON.parse(Buffer.from(match[1], "base64").toString("utf8"));
 }
 
+function decodeBody(payload) {
+  if (!payload) return "";
+  if (payload.body?.data) {
+    return Buffer.from(payload.body.data, "base64").toString("utf8");
+  }
+  if (payload.parts) {
+    for (const part of payload.parts) {
+      if (part.mimeType === "text/plain" && part.body?.data) {
+        return Buffer.from(part.body.data, "base64").toString("utf8");
+      }
+    }
+    for (const part of payload.parts) {
+      if (part.mimeType === "text/html" && part.body?.data) {
+        return Buffer.from(part.body.data, "base64").toString("utf8");
+      }
+      if (part.parts) {
+        const nested = decodeBody(part);
+        if (nested) return nested;
+      }
+    }
+  }
+  return "";
+}
+
 exports.handler = async (event) => {
   const tokens = getTokenFromCookie(event.headers.cookie);
   if (!tokens) return { statusCode: 401, body: JSON.stringify({ error: "Non authentifié" }) };
@@ -31,16 +55,19 @@ exports.handler = async (event) => {
         const detail = await gmail.users.messages.get({
           userId: "me",
           id: msg.id,
-          format: "metadata",
-          metadataHeaders: ["From", "Subject", "Date"],
+          format: "full",
         });
         const headers = detail.data.payload.headers;
         const get = (n) => headers.find((h) => h.name === n)?.value || "";
+        const body = decodeBody(detail.data.payload);
         return {
+          id: msg.id,
           from: get("From"),
           subject: get("Subject"),
           date: get("Date"),
           snippet: detail.data.snippet,
+          body: body.slice(0, 3000),
+          gmailUrl: `https://mail.google.com/mail/u/0/#inbox/${msg.id}`,
         };
       })
     );

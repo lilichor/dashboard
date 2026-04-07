@@ -14,10 +14,12 @@
     .pane { display: none; }
     .pane.active { display: block; }
     .panel { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-    .row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #334155; }
+    .row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #334155; cursor: pointer; }
+    .row:hover { background: #1e3a5f22; }
     .badge { background: #ef4444; color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 700; margin-left: 8px; }
     .badge.green { background: #22c55e; }
     .badge.orange { background: #f59e0b; }
+    .badge.blue { background: #3b82f6; }
     .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
     .kpi { background: #1e293b; border-radius: 12px; padding: 16px; }
     .kpi-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
@@ -28,14 +30,33 @@
     button.btn.red { background: #ef4444; }
     button.btn.green { background: #22c55e; }
     button.btn.gray { background: #334155; }
+    button.btn.blue { background: #3b82f6; }
     .tag { font-size: 11px; color: #64748b; }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 80px; margin-top: 12px; }
     .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; }
+    .soon { border-left: 3px solid #f59e0b !important; padding-left: 10px; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #1e293b; border-radius: 16px; padding: 24px; max-width: 700px; width: 100%; position: relative; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: #334155; border: none; color: #e2e8f0; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+    .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #f8fafc; }
+    .modal-meta { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+    .modal-body { font-size: 13px; color: #cbd5e1; line-height: 1.6; white-space: pre-wrap; max-height: 400px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 12px; }
+    .modal-actions { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .attendee { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #334155; font-size: 13px; }
+    .attendee-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-accepted { background: #22c55e; }
+    .status-declined { background: #ef4444; }
+    .status-tentative { background: #f59e0b; }
+    .status-needsAction { background: #64748b; }
+    .meet-link { display: inline-flex; align-items: center; gap: 6px; background: #1a73e8; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
+    .cal-link { display: inline-flex; align-items: center; gap: 6px; background: #334155; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
     .login-banner { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
     .login-banner a { color: #6366f1; font-weight: 700; text-decoration: none; font-size: 15px; }
-    .soon { border-left: 3px solid #f59e0b !important; padding-left: 10px; }
   </style>
 </head>
 <body>
@@ -117,30 +138,125 @@
   </div>
 </div>
 
+<!-- MODAL EMAIL -->
+<div class="modal-overlay" id="email-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('email-modal')">✕ Fermer</button>
+    <h2 id="modal-email-subject"></h2>
+    <div class="modal-meta" id="modal-email-meta"></div>
+    <div class="modal-actions">
+      <a id="modal-email-link" href="#" target="_blank" class="btn blue" style="text-decoration:none">📬 Ouvrir dans Gmail</a>
+    </div>
+    <div class="modal-body" id="modal-email-body"></div>
+  </div>
+</div>
+
+<!-- MODAL EVENT -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('event-modal')">✕ Fermer</button>
+    <h2 id="modal-event-title"></h2>
+    <div class="modal-meta" id="modal-event-meta"></div>
+    <div class="modal-actions" id="modal-event-actions"></div>
+    <div id="modal-event-description" style="margin-bottom:12px"></div>
+    <div id="modal-event-attendees"></div>
+  </div>
+</div>
+
 <script>
-  let todos = [], reports = [], alerts = [], allEvents = [];
+  let todos = [], reports = [], alerts = [], allEvents = [], allEmails = [];
 
   function showTab(i) {
     document.querySelectorAll('.pane').forEach((p,j) => p.classList.toggle('active', i===j));
     document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
   }
 
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // Fermer modal en cliquant dehors
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
+
+  function openEmailModal(email) {
+    document.getElementById('modal-email-subject').textContent = email.subject || '(sans objet)';
+    document.getElementById('modal-email-meta').textContent = `De : ${email.from} — ${email.date}`;
+    document.getElementById('modal-email-link').href = email.gmailUrl;
+    // Nettoyer le HTML basique
+    const body = email.body
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s{3,}/g, '\n\n')
+      .trim();
+    document.getElementById('modal-email-body').textContent = body || email.snippet;
+    openModal('email-modal');
+  }
+
+  function openEventModal(ev) {
+    document.getElementById('modal-event-title').textContent = ev.title;
+    const start = new Date(ev.start);
+    const end = new Date(ev.end);
+    const dur = Math.round((end - start) / 60000);
+    document.getElementById('modal-event-meta').textContent =
+      `${start.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})} · ${start.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} – ${end.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} (${dur} min)${ev.location ? ' · 📍 ' + ev.location : ''}`;
+
+    // Actions
+    let actions = '';
+    if (ev.meetLink) actions += `<a href="${ev.meetLink}" target="_blank" class="meet-link">🎥 Rejoindre le Meet</a>`;
+    if (ev.calendarUrl) actions += `<a href="${ev.calendarUrl}" target="_blank" class="cal-link">📅 Ouvrir dans Calendar</a>`;
+    document.getElementById('modal-event-actions').innerHTML = actions;
+
+    // Description
+    if (ev.description) {
+      const clean = ev.description.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').trim();
+      document.getElementById('modal-event-description').innerHTML = `<div style="font-size:13px;color:#94a3b8;background:#0f172a;border-radius:8px;padding:12px;margin-bottom:12px">${clean}</div>`;
+    } else {
+      document.getElementById('modal-event-description').innerHTML = '';
+    }
+
+    // Participants
+    if (ev.attendees?.length) {
+      const statusLabel = { accepted: '✅', declined: '❌', tentative: '❓', needsAction: '⏳' };
+      document.getElementById('modal-event-attendees').innerHTML = `
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Participants (${ev.attendees.length})</div>
+        ${ev.attendees.map(a => `
+          <div class="attendee">
+            <span class="attendee-status status-${a.status}"></span>
+            <span style="flex:1">${a.name}</span>
+            <span style="font-size:11px;color:#64748b">${statusLabel[a.status] || ''}</span>
+          </div>`).join('')}`;
+    } else {
+      document.getElementById('modal-event-attendees').innerHTML = '';
+    }
+
+    openModal('event-modal');
+  }
+
   async function loadEmails() {
     document.getElementById('email-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
     const res = await fetch('/api/emails');
     if (res.status === 401) { showAuthBanner(); return; }
-    const emails = await res.json();
-    document.getElementById('email-count').textContent = emails.length;
-    document.getElementById('email-list').innerHTML = emails.length === 0
+    allEmails = await res.json();
+    document.getElementById('email-count').textContent = allEmails.length;
+    document.getElementById('email-list').innerHTML = allEmails.length === 0
       ? '<div style="color:#64748b">Aucun email non lu</div>'
-      : emails.map(m => `
-        <div class="row">
+      : allEmails.map((m, i) => `
+        <div class="row" onclick="openEmailModal(allEmails[${i}])">
           <div style="flex:1">
             <div style="font-weight:600;font-size:14px;margin-bottom:2px">${m.subject || '(sans objet)'}</div>
             <div style="color:#94a3b8;font-size:12px">${m.from}</div>
             <div style="color:#64748b;font-size:12px;margin-top:2px">${m.snippet}</div>
           </div>
-          <div class="tag" style="margin-left:12px;white-space:nowrap">${m.date?.slice(0,16)||''}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:12px">
+            <div class="tag">${m.date?.slice(0,16)||''}</div>
+            <div style="font-size:11px;color:#6366f1">Voir →</div>
+          </div>
         </div>`).join('');
   }
 
@@ -157,18 +273,20 @@
     const now = new Date();
     document.getElementById('event-list').innerHTML = allEvents.length === 0
       ? '<div style="color:#64748b">Aucun événement</div>'
-      : allEvents.map(e => {
+      : allEvents.map((e, i) => {
           const start = new Date(e.start);
           const diff = start - now;
           const soon = diff > 0 && diff < 30 * 60000;
-          return `<div class="row${soon?' soon':''}">
+          return `<div class="row${soon?' soon':''}" onclick="openEventModal(allEvents[${i}])">
             <div style="flex:1">
-              <div style="font-weight:600;font-size:14px">${e.title}${soon?' <span class="badge orange">⚠ Bientôt</span>':''}</div>
+              <div style="font-weight:600;font-size:14px">${e.title}${soon?' <span class="badge orange">⚠ Bientôt</span>':''} ${e.meetLink?'<span class="badge blue">🎥 Meet</span>':''}</div>
               ${e.location ? `<div style="color:#64748b;font-size:12px">📍 ${e.location}</div>` : ''}
+              ${e.attendees?.length ? `<div style="color:#64748b;font-size:12px">👥 ${e.attendees.length} participants</div>` : ''}
             </div>
-            <div class="tag" style="text-align:right">
+            <div class="tag" style="text-align:right;margin-left:12px">
               <div>${start.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
               <div>${start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+              <div style="color:#6366f1;margin-top:2px">Voir →</div>
             </div>
           </div>`;
         }).join('');
@@ -214,7 +332,7 @@
     document.getElementById('todo-list').innerHTML = todos.length === 0
       ? '<div style="color:#64748b">Aucune tâche</div>'
       : todos.map(t => `
-        <div class="row" style="align-items:center">
+        <div class="row" style="cursor:default">
           <input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})" style="margin-right:10px;cursor:pointer"/>
           <span style="flex:1;text-decoration:${t.done?'line-through':'none'};color:${t.done?'#64748b':'#e2e8f0'};font-size:14px">${t.text}</span>
           <div style="display:flex;gap:6px;margin-left:8px">
@@ -253,7 +371,7 @@
     document.getElementById('report-list').innerHTML = reports.length === 0
       ? '<div style="color:#64748b;font-size:13px">Aucun rapport</div>'
       : reports.map(r => `
-        <div class="row" style="font-size:13px">
+        <div class="row" style="cursor:default;font-size:13px">
           <span style="flex:1">${r.text}</span>
           <span class="tag" style="margin-left:8px">${r.time}</span>
           <button class="btn red" style="padding:4px 8px;margin-left:6px" onclick="reports=reports.filter(x=>x.id!==${r.id});renderReports()">✕</button>
@@ -265,7 +383,7 @@
     document.getElementById('alert-list').innerHTML = alerts.length === 0
       ? '<div style="color:#64748b;font-size:13px">Aucune alerte</div>'
       : alerts.map(a => `
-        <div class="row" style="font-size:13px">
+        <div class="row" style="cursor:default;font-size:13px">
           <span style="flex:1">${a.text}</span>
           <span class="tag" style="margin-left:8px">${a.time}</span>
           <button class="btn red" style="padding:4px 8px;margin-left:6px" onclick="alerts=alerts.filter(x=>x.id!==${a.id});renderAlerts()">✕</button>
@@ -276,7 +394,6 @@
     document.getElementById('auth-banner').style.display = 'block';
   }
 
-  // Chargement initial
   loadEmails();
   loadEvents();
 </script>
