@@ -61,22 +61,24 @@ exports.handler = async (event) => {
 
     // Prépare le prompt pour Gemini
     const today = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-    const prompt = `Résumé de journée en français pour ${today}. Sois très concis (max 300 mots).
+    const todoList = pendingTodos.length > 0 
+      ? pendingTodos.map(t => `• ${t.text}`).join("\n") 
+      : "Aucune tâche";
+    const prompt = `Résumé de journée en français pour ${today}. Maximum 250 mots. Réponds OBLIGATOIREMENT avec ces 4 sections :
 
-EMAILS NON LUS (${emails.length}) :
-${emails.slice(0, 5).map(e => `- ${e.from.split('<')[0].trim()} : ${e.subject}`).join("\n")}
+## 📧 Emails prioritaires
+${emails.slice(0, 5).map((e, i) => `${i+1}. ${e.from.split('<')[0].trim()} — ${e.subject}`).join("\n")}
 
-MEETINGS AUJOURD'HUI (${events.length}) :
-${events.map(e => `- ${e.title} à ${new Date(e.start).toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})}`).join("\n") || "Aucun"}
+## 📅 Planning du jour
+${events.map(e => `• ${e.title} à ${new Date(e.start).toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})}`).join("\n") || "• Aucun meeting"}
 
-TO-DO EN ATTENTE (${pendingTodos.length}) :
-${pendingTodos.map(t => `- ${t.text}`).join("\n") || "Aucune"}
+## ✅ To-dos du jour
+${todoList}
 
-Génère en 4 sections courtes :
-1. 📧 **Emails prioritaires** — 3 emails importants en 1 ligne chacun
-2. 📅 **Planning** — meetings du jour
-3. ✅ **To-dos** — tâches en attente par priorité
-4. 🎯 **Top 3 priorités** — actions concrètes pour aujourd'hui`;
+## 🎯 Top 3 priorités
+Suggère 3 actions basées sur les emails, meetings et to-dos ci-dessus.
+
+IMPORTANT : Inclus TOUTES les sections, notamment les to-dos listés ci-dessus.`;
 
     // Appel Gemini API
     const geminiRes = await fetch(
