@@ -728,12 +728,12 @@
     btn.textContent = '✨ Résumé IA de ma journée';
   }
 
-  // ── Persistance Netlify Blobs ──────────────────────────────
-  async function loadData() {
+  // ── Persistance localStorage ───────────────────────────────
+  function loadData() {
     try {
-      const res = await fetch('/api/data');
-      if (res.status === 401) return;
-      const data = await res.json();
+      const saved = localStorage.getItem('dashboard-data');
+      if (!saved) return;
+      const data = JSON.parse(saved);
       if (data.todos) { todos = data.todos; renderTodos(); }
       if (data.colleagues) { colleagues = data.colleagues; renderColleagues(); }
       if (data.reports) { reports = data.reports; renderReports(); }
@@ -741,13 +741,9 @@
     } catch(e) { console.error('loadData error:', e); }
   }
 
-  async function saveData() {
+  function saveData() {
     try {
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ todos, colleagues, reports, alerts })
-      });
+      localStorage.setItem('dashboard-data', JSON.stringify({ todos, colleagues, reports, alerts }));
     } catch(e) { console.error('saveData error:', e); }
   }
 
