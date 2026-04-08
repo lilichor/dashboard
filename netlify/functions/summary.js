@@ -8,7 +8,6 @@ function getTokenFromCookie(cookieHeader) {
 }
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
   const tokens = getTokenFromCookie(event.headers.cookie);
   if (!tokens) return { statusCode: 401, body: JSON.stringify({ error: "Non authentifié" }) };
 
