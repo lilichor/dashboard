@@ -88,7 +88,11 @@ IMPORTANT : Inclus TOUTES les sections, notamment les to-dos listés ci-dessus.`
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+          generationConfig: { 
+            temperature: 0.7, 
+            maxOutputTokens: 800,
+            thinkingConfig: { thinkingBudget: 0 }
+          }
         })
       }
     );
