@@ -1,6 +1,6 @@
 const { google } = require("googleapis");
 
-exports.handler = async () => {
+module.exports = async (req, res) => {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -15,9 +15,5 @@ exports.handler = async () => {
     ],
   });
 
-  return {
-    statusCode: 302,
-    headers: { Location: url },
-    body: "",
-  };
+  res.redirect(url);
 };

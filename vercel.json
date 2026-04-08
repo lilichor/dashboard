@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/auth", "destination": "/api/auth" },
+    { "source": "/oauth/callback", "destination": "/api/callback" }
+  ],
+  "functions": {
+    "api/summary.js": { "maxDuration": 30 }
+  }
+}
