@@ -37,8 +37,6 @@
     .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; }
     .soon { border-left: 3px solid #f59e0b !important; padding-left: 10px; }
-
-    /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
     .modal-overlay.open { display: flex; }
     .modal { background: #1e293b; border-radius: 16px; padding: 24px; max-width: 700px; width: 100%; position: relative; }
@@ -57,6 +55,10 @@
     .cal-link { display: inline-flex; align-items: center; gap: 6px; background: #334155; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
     .login-banner { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
     .login-banner a { color: #6366f1; font-weight: 700; text-decoration: none; font-size: 15px; }
+    .notif-banner { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .status-bar { font-size: 11px; color: #64748b; margin-bottom: 12px; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   </style>
 </head>
 <body>
@@ -66,6 +68,13 @@
 <div id="auth-banner" class="login-banner" style="display:none">
   ⚠️ Tu n'es pas connecté. <a href="/auth">👉 Connecte-toi avec Google</a>
 </div>
+
+<div id="notif-banner" class="notif-banner" style="display:none">
+  🔔 Activer les notifications Chrome pour recevoir des alertes emails et meetings
+  <button class="btn" onclick="requestNotifPermission()">Activer</button>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
 
 <div class="tabs">
   <button class="tab active" onclick="showTab(0)">📧 Emails</button>
@@ -79,7 +88,7 @@
 <div class="pane active" id="pane-0">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <span style="font-weight:700">Emails non lus <span class="badge" id="email-count">0</span></span>
-    <button class="btn" onclick="loadEmails()">🔄 Rafraîchir</button>
+    <button class="btn" onclick="loadEmails(true)">🔄 Rafraîchir</button>
   </div>
   <div id="email-list"><div style="color:#64748b">Chargement...</div></div>
 </div>
@@ -88,7 +97,7 @@
 <div class="pane" id="pane-1">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
     <span style="font-weight:700">7 prochains jours</span>
-    <button class="btn" onclick="loadEvents()">🔄 Rafraîchir</button>
+    <button class="btn" onclick="loadEvents(true)">🔄 Rafraîchir</button>
   </div>
   <div id="event-list"><div style="color:#64748b">Chargement...</div></div>
 </div>
@@ -104,7 +113,7 @@
     <div style="font-weight:600;margin-bottom:4px">Heures par semaine</div>
     <div class="bar-chart" id="bar-chart"><div style="color:#64748b">Chargement...</div></div>
   </div>
-  <button class="btn" onclick="loadEvents()">🔄 Rafraîchir</button>
+  <button class="btn" onclick="loadEvents(true)">🔄 Rafraîchir</button>
 </div>
 
 <!-- TO-DO -->
@@ -165,7 +174,47 @@
 
 <script>
   let todos = [], reports = [], alerts = [], allEvents = [], allEmails = [];
+  let knownEmailIds = new Set();
+  let notifiedMeetings = new Set();
 
+  // ── Notifications ──────────────────────────────────────────
+  function initNotifications() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      document.getElementById('notif-banner').style.display = 'flex';
+    }
+  }
+
+  function requestNotifPermission() {
+    Notification.requestPermission().then(perm => {
+      document.getElementById('notif-banner').style.display = 'none';
+      if (perm === 'granted') sendNotif('🎉 Notifications activées !', 'Tu recevras des alertes emails et meetings.');
+    });
+  }
+
+  function sendNotif(title, body, url) {
+    if (Notification.permission !== 'granted') return;
+    const n = new Notification(title, { body, icon: 'https://www.google.com/favicon.ico' });
+    if (url) n.onclick = () => { window.open(url, '_blank'); n.close(); };
+    setTimeout(() => n.close(), 8000);
+  }
+
+  function updateStatusBar() {
+    const now = new Date();
+    document.getElementById('status-bar').innerHTML =
+      `<span class="status-dot"></span>Mise à jour automatique toutes les 60s · Dernière : ${now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
+  }
+
+  // ── Polling ────────────────────────────────────────────────
+  function startPolling() {
+    setInterval(async () => {
+      await loadEmails(false);
+      await loadEvents(false);
+      updateStatusBar();
+    }, 60000);
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────
   function showTab(i) {
     document.querySelectorAll('.pane').forEach((p,j) => p.classList.toggle('active', i===j));
     document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
@@ -173,76 +222,76 @@
 
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-  // Fermer modal en cliquant dehors
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
   });
 
+  // ── Email modal ────────────────────────────────────────────
   function openEmailModal(email) {
     document.getElementById('modal-email-subject').textContent = email.subject || '(sans objet)';
     document.getElementById('modal-email-meta').textContent = `De : ${email.from} — ${email.date}`;
     document.getElementById('modal-email-link').href = email.gmailUrl;
-    // Nettoyer le HTML basique
     const body = email.body
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/\s{3,}/g, '\n\n')
-      .trim();
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/\s{3,}/g, '\n\n').trim();
     document.getElementById('modal-email-body').textContent = body || email.snippet;
     openModal('email-modal');
   }
 
+  // ── Event modal ────────────────────────────────────────────
   function openEventModal(ev) {
     document.getElementById('modal-event-title').textContent = ev.title;
-    const start = new Date(ev.start);
-    const end = new Date(ev.end);
+    const start = new Date(ev.start), end = new Date(ev.end);
     const dur = Math.round((end - start) / 60000);
     document.getElementById('modal-event-meta').textContent =
       `${start.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})} · ${start.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} – ${end.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} (${dur} min)${ev.location ? ' · 📍 ' + ev.location : ''}`;
-
-    // Actions
     let actions = '';
     if (ev.meetLink) actions += `<a href="${ev.meetLink}" target="_blank" class="meet-link">🎥 Rejoindre le Meet</a>`;
     if (ev.calendarUrl) actions += `<a href="${ev.calendarUrl}" target="_blank" class="cal-link">📅 Ouvrir dans Calendar</a>`;
     document.getElementById('modal-event-actions').innerHTML = actions;
-
-    // Description
     if (ev.description) {
       const clean = ev.description.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').trim();
       document.getElementById('modal-event-description').innerHTML = `<div style="font-size:13px;color:#94a3b8;background:#0f172a;border-radius:8px;padding:12px;margin-bottom:12px">${clean}</div>`;
     } else {
       document.getElementById('modal-event-description').innerHTML = '';
     }
-
-    // Participants
     if (ev.attendees?.length) {
-      const statusLabel = { accepted: '✅', declined: '❌', tentative: '❓', needsAction: '⏳' };
+      const statusLabel = { accepted:'✅', declined:'❌', tentative:'❓', needsAction:'⏳' };
       document.getElementById('modal-event-attendees').innerHTML = `
         <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Participants (${ev.attendees.length})</div>
         ${ev.attendees.map(a => `
           <div class="attendee">
             <span class="attendee-status status-${a.status}"></span>
             <span style="flex:1">${a.name}</span>
-            <span style="font-size:11px;color:#64748b">${statusLabel[a.status] || ''}</span>
+            <span style="font-size:11px;color:#64748b">${statusLabel[a.status]||''}</span>
           </div>`).join('')}`;
     } else {
       document.getElementById('modal-event-attendees').innerHTML = '';
     }
-
     openModal('event-modal');
   }
 
-  async function loadEmails() {
-    document.getElementById('email-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
+  // ── Load emails ────────────────────────────────────────────
+  async function loadEmails(showLoader = true) {
+    if (showLoader) document.getElementById('email-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
     const res = await fetch('/api/emails');
     if (res.status === 401) { showAuthBanner(); return; }
-    allEmails = await res.json();
+    const emails = await res.json();
+
+    // Détecter nouveaux emails
+    if (knownEmailIds.size > 0) {
+      emails.forEach(m => {
+        if (!knownEmailIds.has(m.id)) {
+          sendNotif(`📧 Nouvel email`, `${m.from}\n${m.subject || '(sans objet)'}`, m.gmailUrl);
+        }
+      });
+    }
+    knownEmailIds = new Set(emails.map(m => m.id));
+    allEmails = emails;
+
     document.getElementById('email-count').textContent = allEmails.length;
     document.getElementById('email-list').innerHTML = allEmails.length === 0
       ? '<div style="color:#64748b">Aucun email non lu</div>'
@@ -260,13 +309,32 @@
         </div>`).join('');
   }
 
-  async function loadEvents() {
-    document.getElementById('event-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
+  // ── Load events ────────────────────────────────────────────
+  async function loadEvents(showLoader = true) {
+    if (showLoader) document.getElementById('event-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
     const res = await fetch('/api/events');
     if (res.status === 401) { showAuthBanner(); return; }
     allEvents = await res.json();
+    checkUpcomingMeetings();
     renderEvents();
     renderMeetings();
+  }
+
+  function checkUpcomingMeetings() {
+    const now = new Date();
+    allEvents.forEach(ev => {
+      const start = new Date(ev.start);
+      const diff = (start - now) / 60000; // en minutes
+      if (diff > 0 && diff <= 15 && !notifiedMeetings.has(ev.id)) {
+        notifiedMeetings.add(ev.id);
+        const mins = Math.round(diff);
+        sendNotif(
+          `📅 Meeting dans ${mins} min`,
+          `${ev.title}${ev.meetLink ? '\n🎥 Lien Meet disponible' : ''}`,
+          ev.meetLink || ev.calendarUrl
+        );
+      }
+    });
   }
 
   function renderEvents() {
@@ -320,14 +388,13 @@
       </div>`).join('');
   }
 
+  // ── To-do ──────────────────────────────────────────────────
   function addTodo() {
     const input = document.getElementById('todo-input');
     if (!input.value.trim()) return;
     todos.push({ id: Date.now(), text: input.value.trim(), done: false });
-    input.value = '';
-    renderTodos();
+    input.value = ''; renderTodos();
   }
-
   function renderTodos() {
     document.getElementById('todo-list').innerHTML = todos.length === 0
       ? '<div style="color:#64748b">Aucune tâche</div>'
@@ -341,7 +408,6 @@
           </div>
         </div>`).join('');
   }
-
   function toggleTodo(id) { todos = todos.map(t => t.id===id ? {...t, done:!t.done} : t); renderTodos(); }
   function deleteTodo(id) { todos = todos.filter(t => t.id!==id); renderTodos(); }
   function editTodo(id) {
@@ -350,22 +416,19 @@
     if (text !== null) { todos = todos.map(x => x.id===id ? {...x, text} : x); renderTodos(); }
   }
 
+  // ── Rapports & alertes ─────────────────────────────────────
   function addReport() {
     const input = document.getElementById('report-input');
     if (!input.value.trim()) return;
     reports.push({ id: Date.now(), text: input.value.trim(), time: new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) });
-    input.value = '';
-    renderReports();
+    input.value = ''; renderReports();
   }
-
   function addAlert() {
     const input = document.getElementById('alert-input');
     if (!input.value.trim()) return;
     alerts.push({ id: Date.now(), text: input.value.trim(), time: new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) });
-    input.value = '';
-    renderAlerts();
+    input.value = ''; renderAlerts();
   }
-
   function renderReports() {
     document.getElementById('report-count').textContent = reports.length;
     document.getElementById('report-list').innerHTML = reports.length === 0
@@ -377,7 +440,6 @@
           <button class="btn red" style="padding:4px 8px;margin-left:6px" onclick="reports=reports.filter(x=>x.id!==${r.id});renderReports()">✕</button>
         </div>`).join('');
   }
-
   function renderAlerts() {
     document.getElementById('alert-count').textContent = alerts.length;
     document.getElementById('alert-list').innerHTML = alerts.length === 0
@@ -390,12 +452,14 @@
         </div>`).join('');
   }
 
-  function showAuthBanner() {
-    document.getElementById('auth-banner').style.display = 'block';
-  }
+  function showAuthBanner() { document.getElementById('auth-banner').style.display = 'block'; }
 
-  loadEmails();
-  loadEvents();
+  // ── Init ───────────────────────────────────────────────────
+  initNotifications();
+  loadEmails(true);
+  loadEvents(true);
+  updateStatusBar();
+  startPolling();
 </script>
 </body>
 </html>
