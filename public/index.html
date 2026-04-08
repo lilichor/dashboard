@@ -1,250 +1,383 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
+    :root[data-theme="dark"] {
+      --bg: #080b14;
+      --bg2: #0f1320;
+      --card: #131929;
+      --card2: #1a2235;
+      --border: #1e2d45;
+      --text: #e8edf5;
+      --text2: #8899b4;
+      --text3: #4a5a72;
+      --accent1: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    :root[data-theme="light"] {
+      --bg: #f0f4ff;
+      --bg2: #e8edf8;
+      --card: #ffffff;
+      --card2: #f5f7ff;
+      --border: #dde3f0;
+      --text: #0f1320;
+      --text2: #4a5a72;
+      --text3: #8899b4;
+      --accent1: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --shadow: 0 4px 24px rgba(99,102,241,0.08);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #f8fafc; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .tab { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; background: #1e293b; color: #94a3b8; }
-    .tab.active { background: #6366f1; color: #fff; }
-    .pane { display: none; }
-    .pane.active { display: block; }
-    .panel { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-    .row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #334155; cursor: pointer; }
-    .row:hover { background: #1e3a5f22; }
-    .badge { background: #ef4444; color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 700; margin-left: 8px; }
-    .badge.green { background: #22c55e; }
-    .badge.orange { background: #f59e0b; }
-    .badge.blue { background: #3b82f6; }
-    .badge.purple { background: #8b5cf6; }
-    .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .kpi { background: #1e293b; border-radius: 12px; padding: 16px; }
-    .kpi-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
-    .kpi-val { font-size: 22px; font-weight: 700; color: #f1f5f9; }
-    .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
-    input[type=text] { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; flex: 1; outline: none; }
-    select { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; outline: none; cursor: pointer; }
-    button.btn { background: #6366f1; border: none; border-radius: 8px; padding: 8px 14px; color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; }
-    button.btn.red { background: #ef4444; }
-    button.btn.green { background: #22c55e; }
-    button.btn.gray { background: #334155; }
-    button.btn.blue { background: #3b82f6; }
-    button.btn.orange { background: #f59e0b; }
-    .tag { font-size: 11px; color: #64748b; }
-    .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 80px; margin-top: 12px; }
-    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; }
-    .soon { border-left: 3px solid #f59e0b !important; padding-left: 10px; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: #1e293b; border-radius: 16px; padding: 24px; max-width: 700px; width: 100%; position: relative; }
-    .modal-close { position: absolute; top: 16px; right: 16px; background: #334155; border: none; color: #e2e8f0; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
-    .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #f8fafc; }
-    .modal-meta { font-size: 12px; color: #64748b; margin-bottom: 16px; }
-    .modal-body { font-size: 13px; color: #cbd5e1; line-height: 1.6; white-space: pre-wrap; max-height: 400px; overflow-y: auto; background: #0f172a; border-radius: 8px; padding: 12px; }
-    .modal-actions { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-    .attendee { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #334155; font-size: 13px; }
-    .attendee-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .status-accepted { background: #22c55e; }
-    .status-declined { background: #ef4444; }
-    .status-tentative { background: #f59e0b; }
-    .status-needsAction { background: #64748b; }
-    .meet-link { display: inline-flex; align-items: center; gap: 6px; background: #1a73e8; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
-    .cal-link { display: inline-flex; align-items: center; gap: 6px; background: #334155; color: #e2e8f0; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
-    .login-banner { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; }
-    .login-banner a { color: #6366f1; font-weight: 700; text-decoration: none; font-size: 15px; }
-    .notif-banner { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-    .status-bar { font-size: 11px; color: #64748b; margin-bottom: 12px; }
-    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+    
+    /* Header */
+    .header { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-left h1 { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-left .status-bar { font-size: 11px; color: var(--text3); margin-top: 3px; }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 5px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+    .header-right { display: flex; gap: 10px; align-items: center; }
+    .theme-toggle { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 16px; color: var(--text); transition: all 0.2s; }
+    .theme-toggle:hover { border-color: var(--accent1); transform: scale(1.05); }
 
-    /* Bureau styles */
-    .desk-card { background: #0f172a; border-radius: 12px; padding: 20px; margin-bottom: 12px; border: 2px solid #334155; }
-    .desk-card.active-desk { border-color: #6366f1; }
-    .desk-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .desk-status.office { background: #1e3a5f; color: #60a5fa; }
-    .desk-status.remote { background: #1a2e1a; color: #4ade80; }
-    .desk-status.absent { background: #2e1a1a; color: #f87171; }
-    .colleague-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
-    .colleague-avatar { width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
-    .deskare-btn { display: inline-flex; align-items: center; gap: 8px; background: #6366f1; color: #fff; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
-    .deskare-btn:hover { background: #4f46e5; }
-    .week-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
-    .week-day { background: #0f172a; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #334155; cursor: pointer; transition: all 0.2s; }
-    .week-day:hover { border-color: #6366f1; }
-    .week-day.today { border-color: #6366f1; background: #1e1b4b; }
-    .week-day.office-day { border-color: #3b82f6; }
-    .week-day.remote-day { border-color: #22c55e; }
-    .week-day-name { font-size: 10px; color: #64748b; margin-bottom: 4px; }
-    .week-day-status { font-size: 18px; }
+    /* Main content */
+    .main { padding: 0 24px 24px; }
+
+    /* Banners */
+    .banner { border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; animation: slideDown 0.3s ease; }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    .banner-notif { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); border: 1px solid rgba(99,102,241,0.3); }
+    .banner-deskare { background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(99,102,241,0.15)); border: 1px solid rgba(6,182,212,0.3); }
+    .banner-auth { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(245,158,11,0.15)); border: 1px solid rgba(239,68,68,0.3); text-align: center; justify-content: center; }
+    .banner-auth a { color: var(--accent1); font-weight: 700; text-decoration: none; }
+
+    /* Summary button */
+    .summary-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4); border: none; border-radius: 14px; padding: 12px 24px; color: #fff; font-weight: 700; cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif; transition: all 0.2s; box-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+    .summary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.5); }
+    .summary-btn:active { transform: translateY(0); }
+    .summary-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .summary-status { font-size: 12px; color: var(--text3); }
+
+    /* Summary panel */
+    .summary-panel { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border: 1px solid rgba(99,102,241,0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px; animation: slideDown 0.3s ease; }
+    .summary-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .summary-panel-header span { font-weight: 700; font-size: 15px; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .summary-content { font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; background: var(--card); border-radius: 16px; padding: 6px; border: 1px solid var(--border); }
+    .tab { padding: 9px 16px; border-radius: 11px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; background: transparent; color: var(--text2); font-family: 'Inter', sans-serif; transition: all 0.2s; }
+    .tab:hover { color: var(--text); background: var(--card2); }
+    .tab.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+
+    /* Panes */
+    .pane { display: none; animation: fadeIn 0.2s ease; }
+    .pane.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Cards */
+    .card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: border-color 0.2s; }
+    .card:hover { border-color: rgba(99,102,241,0.3); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .card-title { font-weight: 700; font-size: 14px; color: var(--text); }
+
+    /* KPI grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 14px; }
+    .kpi-card { background: var(--card); border-radius: 14px; padding: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; transition: all 0.2s; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 14px 14px 0 0; }
+    .kpi-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-val { font-size: 24px; font-weight: 800; color: var(--text); }
+
+    /* Rows */
+    .row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.15s; border-radius: 4px; }
+    .row:last-child { border-bottom: none; }
+    .row:hover { padding-left: 6px; }
+    .row-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; color: var(--text); }
+    .row-sub { color: var(--text2); font-size: 12px; }
+    .row-meta { font-size: 11px; color: var(--text3); text-align: right; white-space: nowrap; margin-left: 12px; }
+
+    /* Badges */
+    .badge { border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+    .badge-red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-green { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-blue { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+    .badge-orange { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .badge-purple { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+
+    /* Buttons */
+    .btn { border: none; border-radius: 10px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-size: 13px; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 2px 10px rgba(99,102,241,0.3); }
+    .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 2px 10px rgba(16,185,129,0.3); }
+    .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .btn-gray { background: var(--card2); color: var(--text2); border: 1px solid var(--border); }
+    .btn-blue { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+
+    /* Inputs */
+    .input { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px; color: var(--text); font-size: 13px; flex: 1; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
+    .input:focus { border-color: var(--accent1); }
+    select.input { cursor: pointer; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 14px; }
+
+    /* Bar chart */
+    .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 80px; margin-top: 12px; }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar { width: 100%; background: linear-gradient(180deg, #6366f1, #8b5cf6); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.5s ease; }
+
+    /* Soon indicator */
+    .soon-indicator { border-left: 3px solid var(--orange) !important; padding-left: 10px !important; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    .modal { background: var(--card); border-radius: 20px; padding: 28px; max-width: 700px; width: 100%; position: relative; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .modal-close { position: absolute; top: 18px; right: 18px; background: var(--card2); border: 1px solid var(--border); color: var(--text2); border-radius: 10px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+    .modal-close:hover { background: var(--red); color: #fff; border-color: var(--red); }
+    .modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--text); padding-right: 60px; }
+    .modal-meta { font-size: 12px; color: var(--text3); margin-bottom: 18px; }
+    .modal-body { font-size: 13px; color: var(--text2); line-height: 1.7; white-space: pre-wrap; max-height: 400px; overflow-y: auto; background: var(--bg2); border-radius: 10px; padding: 14px; }
+    .modal-actions { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .meet-link { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #1a73e8, #1557b0); color: #fff; padding: 9px 18px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .meet-link:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,115,232,0.4); }
+    .cal-link { display: inline-flex; align-items: center; gap: 6px; background: var(--card2); color: var(--text2); padding: 9px 18px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid var(--border); transition: all 0.2s; }
+    .cal-link:hover { border-color: var(--accent1); color: var(--accent1); }
+    .attendee { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .attendee:last-child { border-bottom: none; }
+    .attendee-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Bureau */
+    .desk-card { background: var(--bg2); border-radius: 14px; padding: 18px; margin-bottom: 14px; border: 2px solid var(--border); transition: border-color 0.2s; }
+    .desk-card.active { border-color: var(--accent1); }
+    .desk-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .desk-status.office { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+    .desk-status.remote { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .desk-status.absent { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .week-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-top: 10px; }
+    .week-day { background: var(--bg2); border-radius: 10px; padding: 10px 6px; text-align: center; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; }
+    .week-day:hover { border-color: var(--accent1); transform: translateY(-2px); }
+    .week-day.today { border-color: var(--accent1); background: rgba(99,102,241,0.1); }
+    .week-day.office-day { border-color: #06b6d4; background: rgba(6,182,212,0.08); }
+    .week-day.remote-day { border-color: #10b981; background: rgba(16,185,129,0.08); }
+    .week-day-name { font-size: 10px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+    .week-day-icon { font-size: 18px; }
+    .colleague-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .colleague-row:last-child { border-bottom: none; }
+    .colleague-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; color: #fff; }
+    .deskare-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1, #06b6d4); color: #fff; padding: 12px 22px; border-radius: 12px; text-decoration: none; font-size: 14px; font-weight: 700; margin-bottom: 18px; transition: all 0.2s; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+    .deskare-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+
+    /* Todo */
+    .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); transition: all 0.15s; }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; appearance: none; -webkit-appearance: none; transition: all 0.2s; position: relative; background: transparent; }
+    .todo-check:checked { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; }
+    .todo-check:checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-size: 11px; font-weight: 700; }
+    .todo-text { flex: 1; font-size: 13px; color: var(--text); transition: all 0.2s; }
+    .todo-text.done { text-decoration: line-through; color: var(--text3); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 999; animation: slideUp 0.3s ease; box-shadow: 0 4px 20px rgba(16,185,129,0.4); }
+    @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Grid 2 */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   </style>
 </head>
 <body>
 
-<h1>🖥 Mon Dashboard</h1>
-
-<div id="auth-banner" class="login-banner" style="display:none">
-  ⚠️ Tu n'es pas connecté. <a href="/auth">👉 Connecte-toi avec Google</a>
-</div>
-
-<div id="notif-banner" class="notif-banner" style="display:none">
-  🔔 Activer les notifications Chrome pour recevoir des alertes emails et meetings
-  <button class="btn" onclick="requestNotifPermission()">Activer</button>
-</div>
-
-<div class="status-bar" id="status-bar"></div>
-
-<!-- RÉSUMÉ IA -->
-<div style="margin-bottom:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-  <button class="btn" onclick="loadSummary()" id="summary-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);font-size:14px;padding:10px 20px">
-    ✨ Résumé IA de ma journée
-  </button>
-  <span id="summary-status" style="font-size:12px;color:#64748b"></span>
-</div>
-<div id="summary-panel" style="display:none" class="panel">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <span style="font-weight:700;font-size:15px">✨ Résumé IA</span>
-    <button class="btn gray" style="padding:4px 10px;font-size:12px" onclick="document.getElementById('summary-panel').style.display='none'">✕</button>
+<div class="header">
+  <div class="header-left">
+    <h1>🖥 Mon Dashboard</h1>
+    <div class="status-bar" id="status-bar"><span class="status-dot"></span>Chargement...</div>
   </div>
-  <div id="summary-content" style="font-size:13px;color:#cbd5e1;line-height:1.8"></div>
-</div>
-
-<div class="tabs">
-  <button class="tab active" onclick="showTab(0)">📧 Emails</button>
-  <button class="tab" onclick="showTab(1)">🗓 Agenda</button>
-  <button class="tab" onclick="showTab(2)">⏱ Meetings</button>
-  <button class="tab" onclick="showTab(3)">🪑 Bureau</button>
-  <button class="tab" onclick="showTab(4)">✅ To-do</button>
-  <button class="tab" onclick="showTab(5)">📤 Rapports</button>
-</div>
-
-<!-- EMAILS -->
-<div class="pane active" id="pane-0">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <span style="font-weight:700">Emails non lus <span class="badge" id="email-count">0</span></span>
-    <button class="btn" onclick="loadEmails(true)">🔄 Rafraîchir</button>
+  <div class="header-right">
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
   </div>
-  <div id="email-list"><div style="color:#64748b">Chargement...</div></div>
 </div>
 
-<!-- AGENDA -->
-<div class="pane" id="pane-1">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <span style="font-weight:700">7 prochains jours</span>
-    <button class="btn" onclick="loadEvents(true)">🔄 Rafraîchir</button>
+<div class="main">
+
+  <div id="auth-banner" class="banner banner-auth" style="display:none">
+    ⚠️ Tu n'es pas connecté. <a href="/auth">👉 Connecte-toi avec Google</a>
   </div>
-  <div id="event-list"><div style="color:#64748b">Chargement...</div></div>
-</div>
 
-<!-- MEETINGS -->
-<div class="pane" id="pane-2">
-  <div class="grid3">
-    <div class="kpi"><div class="kpi-label">Heures cette semaine</div><div class="kpi-val" id="m-hours">—</div></div>
-    <div class="kpi"><div class="kpi-label">Réunions (4 sem.)</div><div class="kpi-val" id="m-count">—</div></div>
-    <div class="kpi"><div class="kpi-label">Meeting récurrent</div><div style="font-size:13px;font-weight:600;color:#f1f5f9;margin-top:4px" id="m-top">—</div></div>
+  <div id="notif-banner" class="banner banner-notif" style="display:none">
+    <span>🔔 Active les notifications pour recevoir des alertes emails et meetings</span>
+    <button class="btn btn-primary btn-sm" onclick="requestNotifPermission()">Activer</button>
   </div>
-  <div class="panel">
-    <div style="font-weight:600;margin-bottom:4px">Heures par semaine</div>
-    <div class="bar-chart" id="bar-chart"><div style="color:#64748b">Chargement...</div></div>
+
+  <div id="deskare-banner" style="display:none" class="banner banner-deskare">
+    <span>🪑 <strong>Rappel :</strong> N'oublie pas de réserver ta place sur Deskare cette semaine !</span>
+    <div style="display:flex;gap:8px">
+      <a href="https://app.deskare.io" target="_blank" class="btn btn-primary btn-sm">Réserver →</a>
+      <button class="btn btn-gray btn-sm" onclick="document.getElementById('deskare-banner').style.display='none'">✕</button>
+    </div>
   </div>
-  <button class="btn" onclick="loadEvents(true)">🔄 Rafraîchir</button>
-</div>
 
-<!-- BUREAU -->
-<div class="pane" id="pane-3">
+  <div class="summary-row">
+    <button class="summary-btn" onclick="loadSummary()" id="summary-btn">✨ Résumé IA de ma journée</button>
+    <span class="summary-status" id="summary-status"></span>
+  </div>
 
-  <!-- Bouton Deskare -->
-  <a href="https://app.deskare.io" target="_blank" class="deskare-btn">
-    🪑 Ouvrir Deskare pour réserver ma place
-  </a>
+  <div id="summary-panel" style="display:none" class="summary-panel">
+    <div class="summary-panel-header">
+      <span>✨ Résumé IA</span>
+      <button class="btn btn-gray btn-sm" onclick="document.getElementById('summary-panel').style.display='none'">✕</button>
+    </div>
+    <div class="summary-content" id="summary-content"></div>
+  </div>
 
-  <!-- Ma place du jour -->
-  <div class="panel">
-    <div style="font-weight:700;margin-bottom:12px">📍 Ma place aujourd'hui</div>
-    <div class="desk-card active-desk" id="my-desk-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div>
-          <div style="font-size:16px;font-weight:700" id="my-desk-name">Non renseignée</div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px" id="my-desk-date"></div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0)">📧 Emails</button>
+    <button class="tab" onclick="showTab(1)">🗓 Agenda</button>
+    <button class="tab" onclick="showTab(2)">⏱ Meetings</button>
+    <button class="tab" onclick="showTab(3)">🪑 Bureau</button>
+    <button class="tab" onclick="showTab(4)">✅ To-do</button>
+    <button class="tab" onclick="showTab(5)">📤 Rapports</button>
+  </div>
+
+  <!-- EMAILS -->
+  <div class="pane active" id="pane-0">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Emails non lus <span class="badge badge-red" id="email-count">0</span></span>
+        <button class="btn btn-gray btn-sm" onclick="loadEmails(true)">🔄 Rafraîchir</button>
+      </div>
+      <div id="email-list"><div style="color:var(--text3)">Chargement...</div></div>
+    </div>
+  </div>
+
+  <!-- AGENDA -->
+  <div class="pane" id="pane-1">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">7 prochains jours</span>
+        <button class="btn btn-gray btn-sm" onclick="loadEvents(true)">🔄 Rafraîchir</button>
+      </div>
+      <div id="event-list"><div style="color:var(--text3)">Chargement...</div></div>
+    </div>
+  </div>
+
+  <!-- MEETINGS -->
+  <div class="pane" id="pane-2">
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Heures cette semaine</div><div class="kpi-val" id="m-hours">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Réunions (4 sem.)</div><div class="kpi-val" id="m-count">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Meeting récurrent</div><div style="font-size:13px;font-weight:600;color:var(--text);margin-top:4px" id="m-top">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:8px">Heures par semaine</div>
+      <div class="bar-chart" id="bar-chart"><div style="color:var(--text3)">Chargement...</div></div>
+    </div>
+    <button class="btn btn-gray btn-sm" onclick="loadEvents(true)">🔄 Rafraîchir</button>
+  </div>
+
+  <!-- BUREAU -->
+  <div class="pane" id="pane-3">
+    <a href="https://app.deskare.io" target="_blank" class="deskare-btn">🪑 Ouvrir Deskare pour réserver ma place</a>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">📍 Ma place aujourd'hui</div>
+      <div class="desk-card active" id="my-desk-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--text)" id="my-desk-name">Non renseignée</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px" id="my-desk-date"></div>
+          </div>
+          <span class="desk-status office" id="my-desk-status">🏢 Bureau</span>
         </div>
-        <span class="desk-status office" id="my-desk-status">🏢 Bureau</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" class="input" id="desk-input" placeholder="Ex: Open space A - Bureau 12" style="flex:1;min-width:180px"/>
+          <select class="input" id="desk-status-select" onchange="updateDeskStatus()" style="width:auto">
+            <option value="office">🏢 Bureau</option>
+            <option value="remote">🏠 Télétravail</option>
+            <option value="absent">❌ Absent</option>
+          </select>
+          <button class="btn btn-green" onclick="saveMyDesk()">💾 Enregistrer</button>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="desk-input" placeholder="Ex: Open space A - Bureau 12" style="flex:1;min-width:200px"/>
-        <select id="desk-status-select" onchange="updateDeskStatus()">
-          <option value="office">🏢 Bureau</option>
-          <option value="remote">🏠 Télétravail</option>
-          <option value="absent">❌ Absent</option>
-        </select>
-        <button class="btn green" onclick="saveMyDesk()">💾 Enregistrer</button>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">📅 Ma semaine</div>
+      <div class="week-grid" id="week-grid"></div>
+      <div style="display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--text3)">
+        <span>🏢 Bureau</span><span>🏠 Télétravail</span><span>❌ Absent</span><span>⬜ Non renseigné</span>
       </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">👥 Collègues au bureau <span class="badge badge-blue" id="colleague-count">0</span></span>
+        <button class="btn btn-gray btn-sm" onclick="showAddColleague()">+ Ajouter</button>
+      </div>
+      <div id="add-colleague-form" style="display:none;margin-bottom:12px">
+        <div class="input-row">
+          <input type="text" class="input" id="colleague-name" placeholder="Prénom Nom"/>
+          <input type="text" class="input" id="colleague-desk" placeholder="Place (optionnel)"/>
+          <button class="btn btn-green" onclick="addColleague()">＋</button>
+        </div>
+      </div>
+      <div id="colleague-list"><div style="color:var(--text3);font-size:13px">Aucun collègue ajouté</div></div>
     </div>
   </div>
 
-  <!-- Ma semaine -->
-  <div class="panel">
-    <div style="font-weight:700;margin-bottom:12px">📅 Ma semaine</div>
-    <div class="week-grid" id="week-grid"></div>
-    <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:#64748b">
-      <span>🏢 Bureau</span>
-      <span>🏠 Télétravail</span>
-      <span>❌ Absent</span>
-      <span>⬜ Non renseigné</span>
-    </div>
-  </div>
-
-  <!-- Collègues présents -->
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="font-weight:700">👥 Collègues au bureau <span class="badge blue" id="colleague-count">0</span></div>
-      <button class="btn gray" onclick="showAddColleague()">+ Ajouter</button>
-    </div>
-    <div id="add-colleague-form" style="display:none;margin-bottom:12px">
+  <!-- TO-DO -->
+  <div class="pane" id="pane-4">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Mes tâches du jour</div>
       <div class="input-row">
-        <input type="text" id="colleague-name" placeholder="Prénom Nom"/>
-        <input type="text" id="colleague-desk" placeholder="Place (optionnel)"/>
-        <button class="btn green" onclick="addColleague()">＋</button>
+        <input type="text" class="input" id="todo-input" placeholder="Nouvelle tâche..." onkeydown="if(event.key==='Enter')addTodo()"/>
+        <button class="btn btn-primary" onclick="addTodo()">＋ Ajouter</button>
       </div>
-    </div>
-    <div id="colleague-list"><div style="color:#64748b;font-size:13px">Aucun collègue ajouté</div></div>
-  </div>
-
-</div>
-
-<!-- TO-DO -->
-<div class="pane" id="pane-4">
-  <div class="input-row">
-    <input type="text" id="todo-input" placeholder="Nouvelle tâche..." onkeydown="if(event.key==='Enter')addTodo()"/>
-    <button class="btn" onclick="addTodo()">＋</button>
-  </div>
-  <div id="todo-list"></div>
-</div>
-
-<!-- RAPPORTS & ALERTES -->
-<div class="pane" id="pane-5">
-  <div class="grid2">
-    <div class="panel">
-      <div style="font-weight:700;margin-bottom:12px">📤 Rapports <span class="badge green" id="report-count">0</span></div>
-      <div class="input-row">
-        <input type="text" id="report-input" placeholder="Nom du rapport..." onkeydown="if(event.key==='Enter')addReport()"/>
-        <button class="btn green" onclick="addReport()">＋</button>
-      </div>
-      <div id="report-list"></div>
-    </div>
-    <div class="panel">
-      <div style="font-weight:700;margin-bottom:12px">🔴 Alertes <span class="badge" id="alert-count">0</span></div>
-      <div class="input-row">
-        <input type="text" id="alert-input" placeholder="Nouvelle alerte..." onkeydown="if(event.key==='Enter')addAlert()"/>
-        <button class="btn red" onclick="addAlert()">＋</button>
-      </div>
-      <div id="alert-list"></div>
+      <div id="todo-list"><div style="color:var(--text3)">Aucune tâche</div></div>
     </div>
   </div>
+
+  <!-- RAPPORTS & ALERTES -->
+  <div class="pane" id="pane-5">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📤 Rapports <span class="badge badge-green" id="report-count">0</span></span>
+        </div>
+        <div class="input-row">
+          <input type="text" class="input" id="report-input" placeholder="Nom du rapport..." onkeydown="if(event.key==='Enter')addReport()"/>
+          <button class="btn btn-green btn-sm" onclick="addReport()">＋</button>
+        </div>
+        <div id="report-list"><div style="color:var(--text3);font-size:13px">Aucun rapport</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔴 Alertes <span class="badge badge-red" id="alert-count">0</span></span>
+        </div>
+        <div class="input-row">
+          <input type="text" class="input" id="alert-input" placeholder="Nouvelle alerte..." onkeydown="if(event.key==='Enter')addAlert()"/>
+          <button class="btn btn-red btn-sm" onclick="addAlert()">＋</button>
+        </div>
+        <div id="alert-list"><div style="color:var(--text3);font-size:13px">Aucune alerte</div></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL EMAIL -->
@@ -254,7 +387,7 @@
     <h2 id="modal-email-subject"></h2>
     <div class="modal-meta" id="modal-email-meta"></div>
     <div class="modal-actions">
-      <a id="modal-email-link" href="#" target="_blank" class="btn blue" style="text-decoration:none">📬 Ouvrir dans Gmail</a>
+      <a id="modal-email-link" href="#" target="_blank" class="btn btn-blue" style="text-decoration:none">📬 Ouvrir dans Gmail</a>
     </div>
     <div class="modal-body" id="modal-email-body"></div>
   </div>
@@ -281,17 +414,83 @@
 
   const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
   const STATUS_ICONS = { office: '🏢', remote: '🏠', absent: '❌', '': '⬜' };
-  const STATUS_CLASSES = { office: 'office-day', remote: 'remote-day', absent: '' };
+  const STATUS_CLASSES = { office: 'office-day', remote: 'remote-day', absent: '', '': '' };
 
-  // ── Init Bureau ────────────────────────────────────────────
+  // ── Theme ──────────────────────────────────────────────────
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+  function initTheme() {
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('theme-btn').textContent = saved === 'dark' ? '🌙' : '☀️';
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────
+  function showTab(i) {
+    document.querySelectorAll('.pane').forEach((p,j) => p.classList.toggle('active', i===j));
+    document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+  }
+
+  // ── Modals ─────────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  });
+
+  // ── Notifications ──────────────────────────────────────────
+  function initNotifications() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") document.getElementById('notif-banner').style.display = 'flex';
+  }
+  function requestNotifPermission() {
+    Notification.requestPermission().then(p => {
+      document.getElementById('notif-banner').style.display = 'none';
+      if (p === 'granted') sendNotif('🎉 Notifications activées !', 'Tu recevras des alertes emails et meetings.');
+    });
+  }
+  function sendNotif(title, body, url) {
+    if (Notification.permission !== 'granted') return;
+    const n = new Notification(title, { body });
+    if (url) n.onclick = () => { window.open(url, '_blank'); n.close(); };
+    setTimeout(() => n.close(), 8000);
+  }
+
+  // ── Deskare reminder ───────────────────────────────────────
+  function checkDeskareReminder() {
+    const now = new Date();
+    const isMonday = now.getDay() === 1;
+    const isMorning = now.getHours() >= 7 && now.getHours() < 12;
+    const todayKey = now.toISOString().slice(0, 10);
+    const lastReminder = localStorage.getItem('deskare-reminder-date');
+    if (isMonday && isMorning && lastReminder !== todayKey) {
+      localStorage.setItem('deskare-reminder-date', todayKey);
+      sendNotif('🪑 Rappel Deskare', "N'oublie pas de réserver ta place pour la semaine !", 'https://app.deskare.io');
+      document.getElementById('deskare-banner').style.display = 'flex';
+    }
+  }
+
+  // ── Status bar ─────────────────────────────────────────────
+  function updateStatusBar() {
+    const now = new Date();
+    document.getElementById('status-bar').innerHTML = `<span class="status-dot"></span>Mise à jour toutes les 60s · ${now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
+  }
+  function startPolling() {
+    setInterval(async () => { await loadEmails(false); await loadEvents(false); updateStatusBar(); }, 60000);
+  }
+
+  // ── Bureau ─────────────────────────────────────────────────
   function initBureau() {
     const today = new Date();
-    document.getElementById('my-desk-date').textContent =
-      today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('my-desk-date').textContent = today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     renderWeekGrid();
     renderColleagues();
   }
-
   function renderWeekGrid() {
     const now = new Date();
     const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
@@ -302,161 +501,81 @@
       const key = d.toISOString().slice(0, 10);
       const status = weekSchedule[key] || '';
       const isToday = i === dayOfWeek;
-      html += `<div class="week-day ${isToday ? 'today' : ''} ${STATUS_CLASSES[status] || ''}" onclick="toggleDayStatus('${key}', ${i})">
+      html += `<div class="week-day ${isToday?'today':''} ${STATUS_CLASSES[status]||''}" onclick="toggleDayStatus('${key}',${i})">
         <div class="week-day-name">${DAYS[i]}<br>${d.getDate()}</div>
-        <div class="week-day-status">${STATUS_ICONS[status] || '⬜'}</div>
+        <div class="week-day-icon">${STATUS_ICONS[status]||'⬜'}</div>
       </div>`;
     }
     document.getElementById('week-grid').innerHTML = html;
   }
-
-  function toggleDayStatus(key, idx) {
+  function toggleDayStatus(key) {
     const states = ['office', 'remote', 'absent', ''];
     const curr = weekSchedule[key] || '';
     const next = states[(states.indexOf(curr) + 1) % states.length];
-    if (next === '') delete weekSchedule[key];
-    else weekSchedule[key] = next;
-
-    // Sync statut du jour avec le badge
-    const now = new Date();
-    const todayKey = now.toISOString().slice(0, 10);
-    if (key === todayKey) syncTodayStatus(next || 'office');
+    if (next === '') delete weekSchedule[key]; else weekSchedule[key] = next;
+    const todayKey = new Date().toISOString().slice(0, 10);
+    if (key === todayKey) { document.getElementById('desk-status-select').value = next || 'office'; updateDeskStatus(); }
     renderWeekGrid();
   }
-
-  function syncTodayStatus(status) {
-    const sel = document.getElementById('desk-status-select');
-    if (sel) sel.value = status || 'office';
-    updateDeskStatus();
-  }
-
   function updateDeskStatus() {
     const status = document.getElementById('desk-status-select').value;
     const el = document.getElementById('my-desk-status');
-    const labels = { office: '🏢 Bureau', remote: '🏠 Télétravail', absent: '❌ Absent' };
-    const classes = { office: 'office', remote: 'remote', absent: 'absent' };
+    const labels = { office:'🏢 Bureau', remote:'🏠 Télétravail', absent:'❌ Absent' };
     el.textContent = labels[status];
-    el.className = `desk-status ${classes[status]}`;
+    el.className = `desk-status ${status}`;
   }
-
   function saveMyDesk() {
     const name = document.getElementById('desk-input').value.trim();
     const status = document.getElementById('desk-status-select').value;
     if (name) document.getElementById('my-desk-name').textContent = name;
     updateDeskStatus();
-
-    // Sauvegarder dans la semaine
     const todayKey = new Date().toISOString().slice(0, 10);
     weekSchedule[todayKey] = status;
     renderWeekGrid();
-
     document.getElementById('desk-input').value = '';
     showToast('✅ Place enregistrée !');
   }
-
   function showAddColleague() {
-    const form = document.getElementById('add-colleague-form');
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    const f = document.getElementById('add-colleague-form');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
   }
-
   function addColleague() {
     const name = document.getElementById('colleague-name').value.trim();
     const desk = document.getElementById('colleague-desk').value.trim();
     if (!name) return;
-    colleagues.push({ id: Date.now(), name, desk, initials: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() });
+    colleagues.push({ id: Date.now(), name, desk, initials: name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() });
     document.getElementById('colleague-name').value = '';
     document.getElementById('colleague-desk').value = '';
-    renderColleagues();
+    renderColleagues(); saveData();
   }
-
-  function removeColleague(id) {
-    colleagues = colleagues.filter(c => c.id !== id);
-    renderColleagues();
-  }
-
+  function removeColleague(id) { colleagues = colleagues.filter(c => c.id !== id); renderColleagues(); saveData(); }
   function renderColleagues() {
-    const colors = ['#6366f1', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
+    const colors = ['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'];
     document.getElementById('colleague-count').textContent = colleagues.length;
     document.getElementById('colleague-list').innerHTML = colleagues.length === 0
-      ? '<div style="color:#64748b;font-size:13px">Aucun collègue ajouté</div>'
-      : colleagues.map((c, i) => `
+      ? '<div style="color:var(--text3);font-size:13px">Aucun collègue ajouté</div>'
+      : colleagues.map((c,i) => `
         <div class="colleague-row">
-          <div class="colleague-avatar" style="background:${colors[i % colors.length]}">${c.initials}</div>
-          <div style="flex:1">
-            <div style="font-weight:600">${c.name}</div>
-            ${c.desk ? `<div style="font-size:11px;color:#64748b">📍 ${c.desk}</div>` : ''}
-          </div>
-          <button class="btn red" style="padding:4px 8px" onclick="removeColleague(${c.id})">✕</button>
+          <div class="colleague-avatar" style="background:${colors[i%colors.length]}">${c.initials}</div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${c.name}</div>${c.desk?`<div style="font-size:11px;color:var(--text3)">📍 ${c.desk}</div>`:''}</div>
+          <button class="btn btn-red btn-sm" onclick="removeColleague(${c.id})">✕</button>
         </div>`).join('');
   }
 
+  // ── Toast ──────────────────────────────────────────────────
   function showToast(msg) {
     const t = document.createElement('div');
-    t.textContent = msg;
-    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#22c55e;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;animation:fadeIn 0.3s';
+    t.className = 'toast'; t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2500);
   }
-
-  // ── Notifications ──────────────────────────────────────────
-  function initNotifications() {
-    if (!("Notification" in window)) return;
-    if (Notification.permission === "default") {
-      document.getElementById('notif-banner').style.display = 'flex';
-    }
-  }
-
-  function requestNotifPermission() {
-    Notification.requestPermission().then(perm => {
-      document.getElementById('notif-banner').style.display = 'none';
-      if (perm === 'granted') sendNotif('🎉 Notifications activées !', 'Tu recevras des alertes emails et meetings.');
-    });
-  }
-
-  function sendNotif(title, body, url) {
-    if (Notification.permission !== 'granted') return;
-    const n = new Notification(title, { body, icon: 'https://www.google.com/favicon.ico' });
-    if (url) n.onclick = () => { window.open(url, '_blank'); n.close(); };
-    setTimeout(() => n.close(), 8000);
-  }
-
-  function updateStatusBar() {
-    const now = new Date();
-    document.getElementById('status-bar').innerHTML =
-      `<span class="status-dot"></span>Mise à jour automatique toutes les 60s · Dernière : ${now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
-  }
-
-  function startPolling() {
-    setInterval(async () => {
-      await loadEmails(false);
-      await loadEvents(false);
-      updateStatusBar();
-    }, 60000);
-  }
-
-  // ── Tabs ───────────────────────────────────────────────────
-  function showTab(i) {
-    document.querySelectorAll('.pane').forEach((p,j) => p.classList.toggle('active', i===j));
-    document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
-  }
-
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-  });
 
   // ── Email modal ────────────────────────────────────────────
   function openEmailModal(email) {
     document.getElementById('modal-email-subject').textContent = email.subject || '(sans objet)';
     document.getElementById('modal-email-meta').textContent = `De : ${email.from} — ${email.date}`;
     document.getElementById('modal-email-link').href = email.gmailUrl;
-    const body = email.body
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/\s{3,}/g, '\n\n').trim();
+    const body = email.body.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s{3,}/g,'\n\n').trim();
     document.getElementById('modal-email-body').textContent = body || email.snippet;
     openModal('email-modal');
   }
@@ -466,75 +585,54 @@
     document.getElementById('modal-event-title').textContent = ev.title;
     const start = new Date(ev.start), end = new Date(ev.end);
     const dur = Math.round((end - start) / 60000);
-    document.getElementById('modal-event-meta').textContent =
-      `${start.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'})} · ${start.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} – ${end.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})} (${dur} min)${ev.location ? ' · 📍 ' + ev.location : ''}`;
+    document.getElementById('modal-event-meta').textContent = `${start.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} · ${start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} – ${end.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} (${dur} min)${ev.location?' · 📍 '+ev.location:''}`;
     let actions = '';
     if (ev.meetLink) actions += `<a href="${ev.meetLink}" target="_blank" class="meet-link">🎥 Rejoindre le Meet</a>`;
     if (ev.calendarUrl) actions += `<a href="${ev.calendarUrl}" target="_blank" class="cal-link">📅 Ouvrir dans Calendar</a>`;
     document.getElementById('modal-event-actions').innerHTML = actions;
     if (ev.description) {
-      const clean = ev.description.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').trim();
-      document.getElementById('modal-event-description').innerHTML = `<div style="font-size:13px;color:#94a3b8;background:#0f172a;border-radius:8px;padding:12px;margin-bottom:12px">${clean}</div>`;
-    } else {
-      document.getElementById('modal-event-description').innerHTML = '';
-    }
+      const clean = ev.description.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').trim();
+      document.getElementById('modal-event-description').innerHTML = `<div style="font-size:13px;color:var(--text2);background:var(--bg2);border-radius:10px;padding:12px">${clean}</div>`;
+    } else document.getElementById('modal-event-description').innerHTML = '';
     if (ev.attendees?.length) {
-      const statusLabel = { accepted:'✅', declined:'❌', tentative:'❓', needsAction:'⏳' };
-      document.getElementById('modal-event-attendees').innerHTML = `
-        <div style="font-weight:600;font-size:13px;margin-bottom:8px">👥 Participants (${ev.attendees.length})</div>
-        ${ev.attendees.map(a => `
-          <div class="attendee">
-            <span class="attendee-status status-${a.status}"></span>
-            <span style="flex:1">${a.name}</span>
-            <span style="font-size:11px;color:#64748b">${statusLabel[a.status]||''}</span>
-          </div>`).join('')}`;
-    } else {
-      document.getElementById('modal-event-attendees').innerHTML = '';
-    }
+      const sl = {accepted:'✅',declined:'❌',tentative:'❓',needsAction:'⏳'};
+      const sc = {accepted:'#10b981',declined:'#ef4444',tentative:'#f59e0b',needsAction:'#4a5a72'};
+      document.getElementById('modal-event-attendees').innerHTML = `<div style="font-weight:600;font-size:13px;margin-bottom:10px">👥 Participants (${ev.attendees.length})</div>${ev.attendees.map(a=>`<div class="attendee"><span class="attendee-dot" style="background:${sc[a.status]||'#4a5a72'}"></span><span style="flex:1">${a.name}</span><span style="font-size:11px;color:var(--text3)">${sl[a.status]||''}</span></div>`).join('')}`;
+    } else document.getElementById('modal-event-attendees').innerHTML = '';
     openModal('event-modal');
   }
 
   // ── Load emails ────────────────────────────────────────────
   async function loadEmails(showLoader = true) {
-    if (showLoader) document.getElementById('email-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
+    if (showLoader) document.getElementById('email-list').innerHTML = '<div style="color:var(--text3)">Chargement...</div>';
     const res = await fetch('/api/emails');
     if (res.status === 401) { showAuthBanner(); return; }
     const emails = await res.json();
-    if (knownEmailIds.size > 0) {
-      emails.forEach(m => {
-        if (!knownEmailIds.has(m.id)) sendNotif(`📧 Nouvel email`, `${m.from}\n${m.subject || '(sans objet)'}`, m.gmailUrl);
-      });
-    }
+    if (knownEmailIds.size > 0) emails.forEach(m => { if (!knownEmailIds.has(m.id)) sendNotif(`📧 Nouvel email`, `${m.from}\n${m.subject||'(sans objet)'}`, m.gmailUrl); });
     knownEmailIds = new Set(emails.map(m => m.id));
     allEmails = emails;
     document.getElementById('email-count').textContent = allEmails.length;
     document.getElementById('email-list').innerHTML = allEmails.length === 0
-      ? '<div style="color:#64748b">Aucun email non lu</div>'
-      : allEmails.map((m, i) => `
+      ? '<div style="color:var(--text3)">Aucun email non lu 🎉</div>'
+      : allEmails.map((m,i) => `
         <div class="row" onclick="openEmailModal(allEmails[${i}])">
           <div style="flex:1">
-            <div style="font-weight:600;font-size:14px;margin-bottom:2px">${m.subject || '(sans objet)'}</div>
-            <div style="color:#94a3b8;font-size:12px">${m.from}</div>
-            <div style="color:#64748b;font-size:12px;margin-top:2px">${m.snippet}</div>
+            <div class="row-title">${m.subject||'(sans objet)'}</div>
+            <div class="row-sub">${m.from}</div>
+            <div class="row-sub" style="margin-top:2px">${m.snippet}</div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:12px">
-            <div class="tag">${m.date?.slice(0,16)||''}</div>
-            <div style="font-size:11px;color:#6366f1">Voir →</div>
-          </div>
+          <div class="row-meta">${m.date?.slice(0,16)||''}<br><span style="color:var(--accent1);font-size:11px">Voir →</span></div>
         </div>`).join('');
   }
 
   // ── Load events ────────────────────────────────────────────
   async function loadEvents(showLoader = true) {
-    if (showLoader) document.getElementById('event-list').innerHTML = '<div style="color:#64748b">Chargement...</div>';
+    if (showLoader) document.getElementById('event-list').innerHTML = '<div style="color:var(--text3)">Chargement...</div>';
     const res = await fetch('/api/events');
     if (res.status === 401) { showAuthBanner(); return; }
     allEvents = await res.json();
-    checkUpcomingMeetings();
-    renderEvents();
-    renderMeetings();
+    checkUpcomingMeetings(); renderEvents(); renderMeetings();
   }
-
   function checkUpcomingMeetings() {
     const now = new Date();
     allEvents.forEach(ev => {
@@ -542,34 +640,32 @@
       const diff = (start - now) / 60000;
       if (diff > 0 && diff <= 15 && !notifiedMeetings.has(ev.id)) {
         notifiedMeetings.add(ev.id);
-        sendNotif(`📅 Meeting dans ${Math.round(diff)} min`, `${ev.title}${ev.meetLink ? '\n🎥 Lien Meet disponible' : ''}`, ev.meetLink || ev.calendarUrl);
+        sendNotif(`📅 Meeting dans ${Math.round(diff)} min`, `${ev.title}${ev.meetLink?'\n🎥 Lien Meet disponible':''}`, ev.meetLink||ev.calendarUrl);
       }
     });
   }
-
   function renderEvents() {
     const now = new Date();
     document.getElementById('event-list').innerHTML = allEvents.length === 0
-      ? '<div style="color:#64748b">Aucun événement</div>'
-      : allEvents.map((e, i) => {
+      ? '<div style="color:var(--text3)">Aucun événement cette semaine 🎉</div>'
+      : allEvents.map((e,i) => {
           const start = new Date(e.start);
           const diff = start - now;
           const soon = diff > 0 && diff < 30 * 60000;
-          return `<div class="row${soon?' soon':''}" onclick="openEventModal(allEvents[${i}])">
+          return `<div class="row${soon?' soon-indicator':''}" onclick="openEventModal(allEvents[${i}])">
             <div style="flex:1">
-              <div style="font-weight:600;font-size:14px">${e.title}${soon?' <span class="badge orange">⚠ Bientôt</span>':''} ${e.meetLink?'<span class="badge blue">🎥 Meet</span>':''}</div>
-              ${e.location ? `<div style="color:#64748b;font-size:12px">📍 ${e.location}</div>` : ''}
-              ${e.attendees?.length ? `<div style="color:#64748b;font-size:12px">👥 ${e.attendees.length} participants</div>` : ''}
+              <div class="row-title">${e.title}${soon?` <span class="badge badge-orange">⚠ Bientôt</span>`:''} ${e.meetLink?'<span class="badge badge-blue">🎥 Meet</span>':''}</div>
+              ${e.location?`<div class="row-sub">📍 ${e.location}</div>`:''}
+              ${e.attendees?.length?`<div class="row-sub">👥 ${e.attendees.length} participants</div>`:''}
             </div>
-            <div class="tag" style="text-align:right;margin-left:12px">
-              <div>${start.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
-              <div>${start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
-              <div style="color:#6366f1;margin-top:2px">Voir →</div>
+            <div class="row-meta">
+              ${start.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}<br>
+              ${start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}<br>
+              <span style="color:var(--accent1)">Voir →</span>
             </div>
           </div>`;
         }).join('');
   }
-
   function renderMeetings() {
     if (!allEvents.length) return;
     const now = new Date();
@@ -580,21 +676,21 @@
       const s = new Date(e.start), en = new Date(e.end);
       const dur = (en - s) / 3600000;
       if (s >= weekStart) hoursThisWeek += dur;
-      titleCount[e.title] = (titleCount[e.title] || 0) + 1;
-      const w = e.start?.slice(0, 7);
-      weekMap[w] = (weekMap[w] || 0) + dur;
+      titleCount[e.title] = (titleCount[e.title]||0) + 1;
+      const w = e.start?.slice(0,7);
+      weekMap[w] = (weekMap[w]||0) + dur;
     });
-    const top = Object.entries(titleCount).sort((a,b) => b[1]-a[1])[0];
+    const top = Object.entries(titleCount).sort((a,b)=>b[1]-a[1])[0];
     document.getElementById('m-hours').textContent = Math.round(hoursThisWeek*10)/10 + 'h';
     document.getElementById('m-count').textContent = allEvents.length;
     document.getElementById('m-top').textContent = top ? `${top[0]} (×${top[1]})` : '—';
     const weeks = Object.entries(weekMap).sort().slice(-4);
-    const maxH = Math.max(...weeks.map(w => w[1]), 1);
-    document.getElementById('bar-chart').innerHTML = weeks.map(([w, h]) => `
+    const maxH = Math.max(...weeks.map(w=>w[1]), 1);
+    document.getElementById('bar-chart').innerHTML = weeks.map(([w,h]) => `
       <div class="bar-wrap">
-        <div style="font-size:11px;color:#94a3b8">${Math.round(h*10)/10}h</div>
+        <div style="font-size:11px;color:var(--text3)">${Math.round(h*10)/10}h</div>
         <div class="bar" style="height:${(h/maxH)*60}px"></div>
-        <div style="font-size:10px;color:#64748b">${w}</div>
+        <div style="font-size:10px;color:var(--text3)">${w}</div>
       </div>`).join('');
   }
 
@@ -607,14 +703,14 @@
   }
   function renderTodos() {
     document.getElementById('todo-list').innerHTML = todos.length === 0
-      ? '<div style="color:#64748b">Aucune tâche</div>'
+      ? '<div style="color:var(--text3)">Aucune tâche — profites-en ! 🎉</div>'
       : todos.map(t => `
-        <div class="row" style="cursor:default">
-          <input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})" style="margin-right:10px;cursor:pointer"/>
-          <span style="flex:1;text-decoration:${t.done?'line-through':'none'};color:${t.done?'#64748b':'#e2e8f0'};font-size:14px">${t.text}</span>
-          <div style="display:flex;gap:6px;margin-left:8px">
-            <button class="btn gray" onclick="editTodo(${t.id})">✏️</button>
-            <button class="btn red" onclick="deleteTodo(${t.id})">✕</button>
+        <div class="todo-item">
+          <input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTodo(${t.id})"/>
+          <span class="todo-text${t.done?' done':''}">${t.text}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-gray btn-sm" onclick="editTodo(${t.id})">✏️</button>
+            <button class="btn btn-red btn-sm" onclick="deleteTodo(${t.id})">✕</button>
           </div>
         </div>`).join('');
   }
@@ -642,51 +738,24 @@
   function renderReports() {
     document.getElementById('report-count').textContent = reports.length;
     document.getElementById('report-list').innerHTML = reports.length === 0
-      ? '<div style="color:#64748b;font-size:13px">Aucun rapport</div>'
+      ? '<div style="color:var(--text3);font-size:13px">Aucun rapport</div>'
       : reports.map(r => `
-        <div class="row" style="cursor:default;font-size:13px">
-          <span style="flex:1">${r.text}</span>
-          <span class="tag" style="margin-left:8px">${r.time}</span>
-          <button class="btn red" style="padding:4px 8px;margin-left:6px" onclick="reports=reports.filter(x=>x.id!==${r.id});renderReports()">✕</button>
+        <div class="row" style="cursor:default">
+          <span style="flex:1;font-size:13px">${r.text}</span>
+          <span style="font-size:11px;color:var(--text3);margin:0 8px">${r.time}</span>
+          <button class="btn btn-red btn-sm" onclick="reports=reports.filter(x=>x.id!==${r.id});renderReports();saveData()">✕</button>
         </div>`).join('');
   }
   function renderAlerts() {
     document.getElementById('alert-count').textContent = alerts.length;
     document.getElementById('alert-list').innerHTML = alerts.length === 0
-      ? '<div style="color:#64748b;font-size:13px">Aucune alerte</div>'
+      ? '<div style="color:var(--text3);font-size:13px">Aucune alerte</div>'
       : alerts.map(a => `
-        <div class="row" style="cursor:default;font-size:13px">
-          <span style="flex:1">${a.text}</span>
-          <span class="tag" style="margin-left:8px">${a.time}</span>
-          <button class="btn red" style="padding:4px 8px;margin-left:6px" onclick="alerts=alerts.filter(x=>x.id!==${a.id});renderAlerts()">✕</button>
+        <div class="row" style="cursor:default">
+          <span style="flex:1;font-size:13px">${a.text}</span>
+          <span style="font-size:11px;color:var(--text3);margin:0 8px">${a.time}</span>
+          <button class="btn btn-red btn-sm" onclick="alerts=alerts.filter(x=>x.id!==${a.id});renderAlerts();saveData()">✕</button>
         </div>`).join('');
-  }
-
-  function showAuthBanner() { document.getElementById('auth-banner').style.display = 'block'; }
-
-  // ── Rappel Deskare lundi matin ─────────────────────────────
-  function checkDeskareReminder() {
-    const now = new Date();
-    const isMonday = now.getDay() === 1;
-    const isMorning = now.getHours() >= 7 && now.getHours() < 12;
-    const todayKey = now.toISOString().slice(0, 10);
-    const lastReminder = localStorage.getItem('deskare-reminder-date');
-    if (isMonday && isMorning && lastReminder !== todayKey) {
-      localStorage.setItem('deskare-reminder-date', todayKey);
-      // Notification Chrome
-      sendNotif('🪑 Rappel Deskare', 'N\'oublie pas de réserver ta place pour la semaine !', 'https://app.deskare.io');
-      // Bannière dans le dashboard
-      const banner = document.createElement('div');
-      banner.id = 'deskare-banner';
-      banner.style.cssText = 'background:#1e3a5f;border:1px solid #6366f1;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;';
-      banner.innerHTML = `
-        <span>🪑 <strong>Rappel :</strong> N'oublie pas de réserver ta place sur Deskare cette semaine !</span>
-        <div style="display:flex;gap:8px">
-          <a href="https://app.deskare.io" target="_blank" class="btn" style="text-decoration:none;padding:6px 12px">Réserver →</a>
-          <button class="btn gray" style="padding:6px 12px" onclick="document.getElementById('deskare-banner').remove()">✕</button>
-        </div>`;
-      document.querySelector('h1').after(banner);
-    }
   }
 
   // ── Résumé IA ──────────────────────────────────────────────
@@ -695,11 +764,10 @@
     const status = document.getElementById('summary-status');
     const panel = document.getElementById('summary-panel');
     const content = document.getElementById('summary-content');
-    btn.disabled = true;
-    btn.textContent = '⏳ Génération en cours...';
+    btn.disabled = true; btn.textContent = '⏳ Génération en cours...';
     status.textContent = 'Analyse de tes emails et meetings...';
     panel.style.display = 'block';
-    content.innerHTML = '<div style="color:#64748b">Gemini analyse tes données...</div>';
+    content.innerHTML = '<div style="color:var(--text3)">Gemini analyse tes données...</div>';
     try {
       const res = await fetch('/api/summary', {
         method: 'POST',
@@ -709,23 +777,20 @@
       if (res.status === 401) { showAuthBanner(); return; }
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      // Convertir markdown en HTML
       const html = data.summary
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^#{1,3} (.*)/gm, '<h3 style="color:#f1f5f9;margin:14px 0 6px;font-size:14px">$1</h3>')
-        .replace(/^[-*] (.*)/gm, '<li style="margin:4px 0;margin-left:16px">$1</li>')
-        .replace(/^(\d+)\. (.*)/gm, '<li style="margin:4px 0;margin-left:16px"><strong>$1.</strong> $2</li>')
-        .replace(/^---+$/gm, '<hr style="border-color:#334155;margin:12px 0">')
-        .replace(/\n\n/g, '<br>')
-        .replace(/\n/g, '<br>');
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/^#{1,3} (.*)/gm,'<h3 style="color:var(--text);margin:14px 0 6px;font-size:14px">$1</h3>')
+        .replace(/^[-*] (.*)/gm,'<li style="margin:4px 0;margin-left:16px">$1</li>')
+        .replace(/^(\d+)\. (.*)/gm,'<li style="margin:4px 0;margin-left:16px"><strong>$1.</strong> $2</li>')
+        .replace(/^---+$/gm,'<hr style="border-color:var(--border);margin:12px 0">')
+        .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
       content.innerHTML = html;
       status.textContent = `${data.emailCount} emails · ${data.eventCount} meetings · ${data.todoCount} tâches analysés`;
     } catch(e) {
-      content.innerHTML = `<div style="color:#ef4444">Erreur : ${e.message}</div>`;
+      content.innerHTML = `<div style="color:var(--red)">Erreur : ${e.message}</div>`;
     }
-    btn.disabled = false;
-    btn.textContent = '✨ Résumé IA de ma journée';
+    btn.disabled = false; btn.textContent = '✨ Résumé IA de ma journée';
   }
 
   // ── Persistance localStorage ───────────────────────────────
@@ -740,14 +805,15 @@
       if (data.alerts) { alerts = data.alerts; renderAlerts(); }
     } catch(e) { console.error('loadData error:', e); }
   }
-
   function saveData() {
-    try {
-      localStorage.setItem('dashboard-data', JSON.stringify({ todos, colleagues, reports, alerts }));
-    } catch(e) { console.error('saveData error:', e); }
+    try { localStorage.setItem('dashboard-data', JSON.stringify({ todos, colleagues, reports, alerts })); }
+    catch(e) { console.error('saveData error:', e); }
   }
 
+  function showAuthBanner() { document.getElementById('auth-banner').style.display = 'flex'; }
+
   // ── Init ───────────────────────────────────────────────────
+  initTheme();
   initNotifications();
   checkDeskareReminder();
   initBureau();
