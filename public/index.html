@@ -20,19 +20,22 @@
     .badge.green { background: #22c55e; }
     .badge.orange { background: #f59e0b; }
     .badge.blue { background: #3b82f6; }
+    .badge.purple { background: #8b5cf6; }
     .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .kpi { background: #1e293b; border-radius: 12px; padding: 16px; }
     .kpi-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
     .kpi-val { font-size: 22px; font-weight: 700; color: #f1f5f9; }
     .input-row { display: flex; gap: 8px; margin-bottom: 12px; }
     input[type=text] { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; flex: 1; outline: none; }
+    select { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; outline: none; cursor: pointer; }
     button.btn { background: #6366f1; border: none; border-radius: 8px; padding: 8px 14px; color: #fff; font-weight: 600; cursor: pointer; font-size: 13px; }
     button.btn.red { background: #ef4444; }
     button.btn.green { background: #22c55e; }
     button.btn.gray { background: #334155; }
     button.btn.blue { background: #3b82f6; }
+    button.btn.orange { background: #f59e0b; }
     .tag { font-size: 11px; color: #64748b; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 80px; margin-top: 12px; }
     .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .bar { width: 100%; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; }
@@ -59,6 +62,26 @@
     .status-bar { font-size: 11px; color: #64748b; margin-bottom: 12px; }
     .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; margin-right: 5px; animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* Bureau styles */
+    .desk-card { background: #0f172a; border-radius: 12px; padding: 20px; margin-bottom: 12px; border: 2px solid #334155; }
+    .desk-card.active-desk { border-color: #6366f1; }
+    .desk-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .desk-status.office { background: #1e3a5f; color: #60a5fa; }
+    .desk-status.remote { background: #1a2e1a; color: #4ade80; }
+    .desk-status.absent { background: #2e1a1a; color: #f87171; }
+    .colleague-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; }
+    .colleague-avatar { width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+    .deskare-btn { display: inline-flex; align-items: center; gap: 8px; background: #6366f1; color: #fff; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+    .deskare-btn:hover { background: #4f46e5; }
+    .week-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+    .week-day { background: #0f172a; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #334155; cursor: pointer; transition: all 0.2s; }
+    .week-day:hover { border-color: #6366f1; }
+    .week-day.today { border-color: #6366f1; background: #1e1b4b; }
+    .week-day.office-day { border-color: #3b82f6; }
+    .week-day.remote-day { border-color: #22c55e; }
+    .week-day-name { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+    .week-day-status { font-size: 18px; }
   </style>
 </head>
 <body>
@@ -80,8 +103,9 @@
   <button class="tab active" onclick="showTab(0)">📧 Emails</button>
   <button class="tab" onclick="showTab(1)">🗓 Agenda</button>
   <button class="tab" onclick="showTab(2)">⏱ Meetings</button>
-  <button class="tab" onclick="showTab(3)">✅ To-do</button>
-  <button class="tab" onclick="showTab(4)">📤 Rapports</button>
+  <button class="tab" onclick="showTab(3)">🪑 Bureau</button>
+  <button class="tab" onclick="showTab(4)">✅ To-do</button>
+  <button class="tab" onclick="showTab(5)">📤 Rapports</button>
 </div>
 
 <!-- EMAILS -->
@@ -116,8 +140,69 @@
   <button class="btn" onclick="loadEvents(true)">🔄 Rafraîchir</button>
 </div>
 
-<!-- TO-DO -->
+<!-- BUREAU -->
 <div class="pane" id="pane-3">
+
+  <!-- Bouton Deskare -->
+  <a href="https://app.deskare.io" target="_blank" class="deskare-btn">
+    🪑 Ouvrir Deskare pour réserver ma place
+  </a>
+
+  <!-- Ma place du jour -->
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:12px">📍 Ma place aujourd'hui</div>
+    <div class="desk-card active-desk" id="my-desk-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:700" id="my-desk-name">Non renseignée</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px" id="my-desk-date"></div>
+        </div>
+        <span class="desk-status office" id="my-desk-status">🏢 Bureau</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="desk-input" placeholder="Ex: Open space A - Bureau 12" style="flex:1;min-width:200px"/>
+        <select id="desk-status-select" onchange="updateDeskStatus()">
+          <option value="office">🏢 Bureau</option>
+          <option value="remote">🏠 Télétravail</option>
+          <option value="absent">❌ Absent</option>
+        </select>
+        <button class="btn green" onclick="saveMyDesk()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ma semaine -->
+  <div class="panel">
+    <div style="font-weight:700;margin-bottom:12px">📅 Ma semaine</div>
+    <div class="week-grid" id="week-grid"></div>
+    <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:#64748b">
+      <span>🏢 Bureau</span>
+      <span>🏠 Télétravail</span>
+      <span>❌ Absent</span>
+      <span>⬜ Non renseigné</span>
+    </div>
+  </div>
+
+  <!-- Collègues présents -->
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-weight:700">👥 Collègues au bureau <span class="badge blue" id="colleague-count">0</span></div>
+      <button class="btn gray" onclick="showAddColleague()">+ Ajouter</button>
+    </div>
+    <div id="add-colleague-form" style="display:none;margin-bottom:12px">
+      <div class="input-row">
+        <input type="text" id="colleague-name" placeholder="Prénom Nom"/>
+        <input type="text" id="colleague-desk" placeholder="Place (optionnel)"/>
+        <button class="btn green" onclick="addColleague()">＋</button>
+      </div>
+    </div>
+    <div id="colleague-list"><div style="color:#64748b;font-size:13px">Aucun collègue ajouté</div></div>
+  </div>
+
+</div>
+
+<!-- TO-DO -->
+<div class="pane" id="pane-4">
   <div class="input-row">
     <input type="text" id="todo-input" placeholder="Nouvelle tâche..." onkeydown="if(event.key==='Enter')addTodo()"/>
     <button class="btn" onclick="addTodo()">＋</button>
@@ -126,7 +211,7 @@
 </div>
 
 <!-- RAPPORTS & ALERTES -->
-<div class="pane" id="pane-4">
+<div class="pane" id="pane-5">
   <div class="grid2">
     <div class="panel">
       <div style="font-weight:700;margin-bottom:12px">📤 Rapports <span class="badge green" id="report-count">0</span></div>
@@ -176,6 +261,127 @@
   let todos = [], reports = [], alerts = [], allEvents = [], allEmails = [];
   let knownEmailIds = new Set();
   let notifiedMeetings = new Set();
+  let colleagues = [];
+  let weekSchedule = {};
+
+  const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
+  const STATUS_ICONS = { office: '🏢', remote: '🏠', absent: '❌', '': '⬜' };
+  const STATUS_CLASSES = { office: 'office-day', remote: 'remote-day', absent: '' };
+
+  // ── Init Bureau ────────────────────────────────────────────
+  function initBureau() {
+    const today = new Date();
+    document.getElementById('my-desk-date').textContent =
+      today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    renderWeekGrid();
+    renderColleagues();
+  }
+
+  function renderWeekGrid() {
+    const now = new Date();
+    const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek);
+    let html = '';
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      const status = weekSchedule[key] || '';
+      const isToday = i === dayOfWeek;
+      html += `<div class="week-day ${isToday ? 'today' : ''} ${STATUS_CLASSES[status] || ''}" onclick="toggleDayStatus('${key}', ${i})">
+        <div class="week-day-name">${DAYS[i]}<br>${d.getDate()}</div>
+        <div class="week-day-status">${STATUS_ICONS[status] || '⬜'}</div>
+      </div>`;
+    }
+    document.getElementById('week-grid').innerHTML = html;
+  }
+
+  function toggleDayStatus(key, idx) {
+    const states = ['office', 'remote', 'absent', ''];
+    const curr = weekSchedule[key] || '';
+    const next = states[(states.indexOf(curr) + 1) % states.length];
+    if (next === '') delete weekSchedule[key];
+    else weekSchedule[key] = next;
+
+    // Sync statut du jour avec le badge
+    const now = new Date();
+    const todayKey = now.toISOString().slice(0, 10);
+    if (key === todayKey) syncTodayStatus(next || 'office');
+    renderWeekGrid();
+  }
+
+  function syncTodayStatus(status) {
+    const sel = document.getElementById('desk-status-select');
+    if (sel) sel.value = status || 'office';
+    updateDeskStatus();
+  }
+
+  function updateDeskStatus() {
+    const status = document.getElementById('desk-status-select').value;
+    const el = document.getElementById('my-desk-status');
+    const labels = { office: '🏢 Bureau', remote: '🏠 Télétravail', absent: '❌ Absent' };
+    const classes = { office: 'office', remote: 'remote', absent: 'absent' };
+    el.textContent = labels[status];
+    el.className = `desk-status ${classes[status]}`;
+  }
+
+  function saveMyDesk() {
+    const name = document.getElementById('desk-input').value.trim();
+    const status = document.getElementById('desk-status-select').value;
+    if (name) document.getElementById('my-desk-name').textContent = name;
+    updateDeskStatus();
+
+    // Sauvegarder dans la semaine
+    const todayKey = new Date().toISOString().slice(0, 10);
+    weekSchedule[todayKey] = status;
+    renderWeekGrid();
+
+    document.getElementById('desk-input').value = '';
+    showToast('✅ Place enregistrée !');
+  }
+
+  function showAddColleague() {
+    const form = document.getElementById('add-colleague-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function addColleague() {
+    const name = document.getElementById('colleague-name').value.trim();
+    const desk = document.getElementById('colleague-desk').value.trim();
+    if (!name) return;
+    colleagues.push({ id: Date.now(), name, desk, initials: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() });
+    document.getElementById('colleague-name').value = '';
+    document.getElementById('colleague-desk').value = '';
+    renderColleagues();
+  }
+
+  function removeColleague(id) {
+    colleagues = colleagues.filter(c => c.id !== id);
+    renderColleagues();
+  }
+
+  function renderColleagues() {
+    const colors = ['#6366f1', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
+    document.getElementById('colleague-count').textContent = colleagues.length;
+    document.getElementById('colleague-list').innerHTML = colleagues.length === 0
+      ? '<div style="color:#64748b;font-size:13px">Aucun collègue ajouté</div>'
+      : colleagues.map((c, i) => `
+        <div class="colleague-row">
+          <div class="colleague-avatar" style="background:${colors[i % colors.length]}">${c.initials}</div>
+          <div style="flex:1">
+            <div style="font-weight:600">${c.name}</div>
+            ${c.desk ? `<div style="font-size:11px;color:#64748b">📍 ${c.desk}</div>` : ''}
+          </div>
+          <button class="btn red" style="padding:4px 8px" onclick="removeColleague(${c.id})">✕</button>
+        </div>`).join('');
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#22c55e;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;animation:fadeIn 0.3s';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
 
   // ── Notifications ──────────────────────────────────────────
   function initNotifications() {
@@ -205,7 +411,6 @@
       `<span class="status-dot"></span>Mise à jour automatique toutes les 60s · Dernière : ${now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
   }
 
-  // ── Polling ────────────────────────────────────────────────
   function startPolling() {
     setInterval(async () => {
       await loadEmails(false);
@@ -280,18 +485,13 @@
     const res = await fetch('/api/emails');
     if (res.status === 401) { showAuthBanner(); return; }
     const emails = await res.json();
-
-    // Détecter nouveaux emails
     if (knownEmailIds.size > 0) {
       emails.forEach(m => {
-        if (!knownEmailIds.has(m.id)) {
-          sendNotif(`📧 Nouvel email`, `${m.from}\n${m.subject || '(sans objet)'}`, m.gmailUrl);
-        }
+        if (!knownEmailIds.has(m.id)) sendNotif(`📧 Nouvel email`, `${m.from}\n${m.subject || '(sans objet)'}`, m.gmailUrl);
       });
     }
     knownEmailIds = new Set(emails.map(m => m.id));
     allEmails = emails;
-
     document.getElementById('email-count').textContent = allEmails.length;
     document.getElementById('email-list').innerHTML = allEmails.length === 0
       ? '<div style="color:#64748b">Aucun email non lu</div>'
@@ -324,15 +524,10 @@
     const now = new Date();
     allEvents.forEach(ev => {
       const start = new Date(ev.start);
-      const diff = (start - now) / 60000; // en minutes
+      const diff = (start - now) / 60000;
       if (diff > 0 && diff <= 15 && !notifiedMeetings.has(ev.id)) {
         notifiedMeetings.add(ev.id);
-        const mins = Math.round(diff);
-        sendNotif(
-          `📅 Meeting dans ${mins} min`,
-          `${ev.title}${ev.meetLink ? '\n🎥 Lien Meet disponible' : ''}`,
-          ev.meetLink || ev.calendarUrl
-        );
+        sendNotif(`📅 Meeting dans ${Math.round(diff)} min`, `${ev.title}${ev.meetLink ? '\n🎥 Lien Meet disponible' : ''}`, ev.meetLink || ev.calendarUrl);
       }
     });
   }
@@ -456,6 +651,7 @@
 
   // ── Init ───────────────────────────────────────────────────
   initNotifications();
+  initBureau();
   loadEmails(true);
   loadEvents(true);
   updateStatusBar();
