@@ -103,7 +103,7 @@ Sois concis, professionnel et actionnable. Utilise des emojis et du markdown.`;
       geminiData.error?.message || 
       "Impossible de générer le résumé.";
 
-    return { statusCode: 200, body: JSON.stringify({ summary, emailCount: emails.length, eventCount: events.length }) };
+    return { statusCode: 200, body: JSON.stringify({ summary, emailCount: emails.length, eventCount: events.length, todoCount: pendingTodos.length }) };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
   }
