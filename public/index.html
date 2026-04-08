@@ -701,7 +701,11 @@
     panel.style.display = 'block';
     content.innerHTML = '<div style="color:#64748b">Gemini analyse tes données...</div>';
     try {
-      const res = await fetch('/api/summary');
+      const res = await fetch('/api/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ todos })
+      });
       if (res.status === 401) { showAuthBanner(); return; }
       const data = await res.json();
       if (data.error) throw new Error(data.error);

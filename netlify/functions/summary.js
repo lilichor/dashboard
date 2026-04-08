@@ -8,6 +8,7 @@ function getTokenFromCookie(cookieHeader) {
 }
 
 exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
   const tokens = getTokenFromCookie(event.headers.cookie);
   if (!tokens) return { statusCode: 401, body: JSON.stringify({ error: "Non authentifié" }) };
 
@@ -52,6 +53,13 @@ exports.handler = async (event) => {
       meetLink: e.hangoutLink || null,
     }));
 
+    // Récupère les todos depuis le body de la requête
+    let todos = [];
+    if (event.body) {
+      try { todos = JSON.parse(event.body).todos || []; } catch {}
+    }
+    const pendingTodos = todos.filter(t => !t.done);
+
     // Prépare le prompt pour Gemini
     const today = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
     const prompt = `Tu es un assistant de productivité. Génère un résumé de journée en français pour ${today}.
@@ -65,11 +73,15 @@ ${events.map(e => {
   return `- ${e.title} à ${start.toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})} (${e.attendees} participants)${e.meetLink ? " 🎥" : ""}`;
 }).join("\n")}
 
+TO-DO EN ATTENTE (${pendingTodos.length}) :
+${pendingTodos.length > 0 ? pendingTodos.map(t => `- ${t.text}`).join("\n") : "Aucune tâche en attente"}
+
 Génère un résumé structuré avec :
 1. 📧 **Emails prioritaires** — identifie les 3 emails les plus importants à traiter
 2. 📅 **Planning du jour** — liste les meetings avec l'heure
-3. 🎯 **Mes priorités** — suggère 3 actions concrètes pour être productif aujourd'hui
-4. 💡 **Conseil du jour** — un conseil court et motivant
+3. ✅ **Mes to-dos** — reprend les tâches en attente et suggère un ordre de priorité
+4. 🎯 **Mes priorités** — suggère 3 actions concrètes pour être productif aujourd'hui
+5. 💡 **Conseil du jour** — un conseil court et motivant
 
 Sois concis, professionnel et actionnable. Utilise des emojis et du markdown.`;
 
