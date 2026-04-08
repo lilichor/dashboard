@@ -87,7 +87,10 @@ Sois concis, professionnel et actionnable. Utilise des emojis et du markdown.`;
     );
 
     const geminiData = await geminiRes.json();
-    const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "Impossible de générer le résumé.";
+    console.log("Gemini response:", JSON.stringify(geminiData));
+    const summary = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 
+      geminiData.error?.message || 
+      "Impossible de générer le résumé.";
 
     return { statusCode: 200, body: JSON.stringify({ summary, emailCount: emails.length, eventCount: events.length }) };
   } catch (e) {
