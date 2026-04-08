@@ -603,7 +603,7 @@
     const input = document.getElementById('todo-input');
     if (!input.value.trim()) return;
     todos.push({ id: Date.now(), text: input.value.trim(), done: false });
-    input.value = ''; renderTodos();
+    input.value = ''; renderTodos(); saveData();
   }
   function renderTodos() {
     document.getElementById('todo-list').innerHTML = todos.length === 0
@@ -618,12 +618,12 @@
           </div>
         </div>`).join('');
   }
-  function toggleTodo(id) { todos = todos.map(t => t.id===id ? {...t, done:!t.done} : t); renderTodos(); }
-  function deleteTodo(id) { todos = todos.filter(t => t.id!==id); renderTodos(); }
+  function toggleTodo(id) { todos = todos.map(t => t.id===id ? {...t, done:!t.done} : t); renderTodos(); saveData(); }
+  function deleteTodo(id) { todos = todos.filter(t => t.id!==id); renderTodos(); saveData(); }
   function editTodo(id) {
     const t = todos.find(x => x.id===id);
     const text = prompt('Modifier la tâche :', t.text);
-    if (text !== null) { todos = todos.map(x => x.id===id ? {...x, text} : x); renderTodos(); }
+    if (text !== null) { todos = todos.map(x => x.id===id ? {...x, text} : x); renderTodos(); saveData(); }
   }
 
   // ── Rapports & alertes ─────────────────────────────────────
@@ -631,13 +631,13 @@
     const input = document.getElementById('report-input');
     if (!input.value.trim()) return;
     reports.push({ id: Date.now(), text: input.value.trim(), time: new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) });
-    input.value = ''; renderReports();
+    input.value = ''; renderReports(); saveData();
   }
   function addAlert() {
     const input = document.getElementById('alert-input');
     if (!input.value.trim()) return;
     alerts.push({ id: Date.now(), text: input.value.trim(), time: new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) });
-    input.value = ''; renderAlerts();
+    input.value = ''; renderAlerts(); saveData();
   }
   function renderReports() {
     document.getElementById('report-count').textContent = reports.length;
@@ -728,10 +728,34 @@
     btn.textContent = '✨ Résumé IA de ma journée';
   }
 
+  // ── Persistance Netlify Blobs ──────────────────────────────
+  async function loadData() {
+    try {
+      const res = await fetch('/api/data');
+      if (res.status === 401) return;
+      const data = await res.json();
+      if (data.todos) { todos = data.todos; renderTodos(); }
+      if (data.colleagues) { colleagues = data.colleagues; renderColleagues(); }
+      if (data.reports) { reports = data.reports; renderReports(); }
+      if (data.alerts) { alerts = data.alerts; renderAlerts(); }
+    } catch(e) { console.error('loadData error:', e); }
+  }
+
+  async function saveData() {
+    try {
+      await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ todos, colleagues, reports, alerts })
+      });
+    } catch(e) { console.error('saveData error:', e); }
+  }
+
   // ── Init ───────────────────────────────────────────────────
   initNotifications();
   checkDeskareReminder();
   initBureau();
+  loadData();
   loadEmails(true);
   loadEvents(true);
   updateStatusBar();
