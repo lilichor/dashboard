@@ -61,28 +61,22 @@ exports.handler = async (event) => {
 
     // Prépare le prompt pour Gemini
     const today = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-    const prompt = `Tu es un assistant de productivité. Génère un résumé de journée en français pour ${today}.
+    const prompt = `Résumé de journée en français pour ${today}. Sois très concis (max 300 mots).
 
 EMAILS NON LUS (${emails.length}) :
-${emails.map(e => `- De: ${e.from}\n  Objet: ${e.subject}\n  Aperçu: ${e.snippet}`).join("\n")}
+${emails.slice(0, 5).map(e => `- ${e.from.split('<')[0].trim()} : ${e.subject}`).join("\n")}
 
 MEETINGS AUJOURD'HUI (${events.length}) :
-${events.map(e => {
-  const start = new Date(e.start);
-  return `- ${e.title} à ${start.toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})} (${e.attendees} participants)${e.meetLink ? " 🎥" : ""}`;
-}).join("\n")}
+${events.map(e => `- ${e.title} à ${new Date(e.start).toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})}`).join("\n") || "Aucun"}
 
 TO-DO EN ATTENTE (${pendingTodos.length}) :
-${pendingTodos.length > 0 ? pendingTodos.map(t => `- ${t.text}`).join("\n") : "Aucune tâche en attente"}
+${pendingTodos.map(t => `- ${t.text}`).join("\n") || "Aucune"}
 
-Génère un résumé structuré avec :
-1. 📧 **Emails prioritaires** — identifie les 3 emails les plus importants à traiter
-2. 📅 **Planning du jour** — liste les meetings avec l'heure
-3. ✅ **Mes to-dos** — reprend les tâches en attente et suggère un ordre de priorité
-4. 🎯 **Mes priorités** — suggère 3 actions concrètes pour être productif aujourd'hui
-5. 💡 **Conseil du jour** — un conseil court et motivant
-
-Sois concis, professionnel et actionnable. Utilise des emojis et du markdown.`;
+Génère en 4 sections courtes :
+1. 📧 **Emails prioritaires** — 3 emails importants en 1 ligne chacun
+2. 📅 **Planning** — meetings du jour
+3. ✅ **To-dos** — tâches en attente par priorité
+4. 🎯 **Top 3 priorités** — actions concrètes pour aujourd'hui`;
 
     // Appel Gemini API
     const geminiRes = await fetch(
